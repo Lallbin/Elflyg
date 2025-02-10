@@ -1,14 +1,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go
+import flygplansklasser
 plt.close()
 
 # Aircraft properties
-drag_coef = 0.03
-reference_area = 42     # (m^2)
-weight = 10000          # (kg)
-cruising_speed = 97    # (m/s)
-
+es_19 = flygplansklasser.Aircraft(8616, 37.7, 94, 4, 0, -3)
+es_30 = flygplansklasser.Aircraft(16000, 42, 97, 4, 0, -3)
 
 # Other values
 g = 9.82
@@ -29,15 +27,28 @@ def calculate_air_density(h):
     
     return rho
 
-
-def calculate_drag_force(C_d0, rho, S, v): # Zero lift drag coefficient, air density, reference area, air speed
-    D_p = (C_d0 * rho * S * v**2) / 2 # Parasitic drag
-    D_i = 0 # Induced drag
-    D_tot = D_p + D_i
+def calculate_drag_coefficient(a):
+    C_d = 0.0005 * a ** 2 - 0.0008 * a + 0.0284
     
-    return D_tot
+    return C_d
 
-print(calculate_drag_force(drag_coef, calculate_air_density(altitude), reference_area, cruising_speed)*cruising_speed)
+def calculate_lift_coefficient(a):
+    C_l = 0.102 * a + 0.102
+    
+    return C_l
+
+def calculate_lift_force(aircraft, a, alt, v):
+    L = calculate_lift_coefficient(a) * 0.5 * calculate_air_density(alt) * aircraft.ref_area *  v ** 2
+    
+    return L
+
+def calculate_drag_force(aircraft, a, alt, v): # Drag coefficient, air density, reference area, air speed
+    D = calculate_drag_coefficient(a) * 0.5 * calculate_air_density(alt) * aircraft.ref_area *  v ** 2
+    
+    return D
+
+print(calculate_lift_force(es_30, 4, 10000, es_30.cruise_speed))
+print(es_30.weight*g)
 
 """
 air_density_list = []
