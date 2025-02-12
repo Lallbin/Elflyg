@@ -6,7 +6,7 @@ plt.close()
 
 # Aircraft properties
 es_19 = flygplansklasser.Aircraft(8616, 37.7, 94, 4, 0, -3)
-es_30 = flygplansklasser.Aircraft(16000, 60, 97, 4, 0, -3)
+es_30 = flygplansklasser.Aircraft(21000, 60, 97, 4, 0, -3)
 
 # Other values
 g = 9.82
@@ -50,7 +50,15 @@ def calculate_lift_force(aircraft, a, alt, v):
     
     return L
 
-print(calculate_lift_force(es_30, 4, 4000, es_30.cruise_speed))
+def calculate_gamma(aircraft, altitude,speed, weight):
+    for gamma in range(1,20,0.01):
+        L = calculate_lift_force(aircraft,gamma,altitude,speed)
+        if L == weight*g:
+            return gamma
+    if gamma <=20:
+        print("ERROR MESSAGE: gamma is greater than 20 degrees. Something is wierd")
+    
+print(calculate_lift_force(es_30, 5.86, 4000, es_30.cruise_speed))
 print(es_30.weight * g)
 
 """
