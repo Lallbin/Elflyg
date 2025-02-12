@@ -32,6 +32,11 @@ def calculate_drag_coefficient(a):
     
     return C_d
 
+def calculate_drag_force(aircraft, a, alt, v): # Drag coefficient, air density, reference area, air speed
+    D = calculate_drag_coefficient(a) * 0.5 * calculate_air_density(alt) * aircraft.ref_area *  v ** 2
+    
+    return D
+
 def calculate_lift_coefficient(a):
     C_l = 0.102 * a + 0.102
     
@@ -42,12 +47,7 @@ def calculate_lift_force(aircraft, a, alt, v):
     
     return L
 
-def calculate_drag_force(aircraft, a, alt, v): # Drag coefficient, air density, reference area, air speed
-    D = calculate_drag_coefficient(a) * 0.5 * calculate_air_density(alt) * aircraft.ref_area *  v ** 2
-    
-    return D
-
-print(calculate_lift_force(es_30, 4, 10000, es_30.cruise_speed))
+print(calculate_lift_force(es_30, es_30.climb_angle, 10000, es_30.cruise_speed))
 print(es_30.weight*g)
 
 """
