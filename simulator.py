@@ -6,7 +6,7 @@ plt.close()
 
 # Aircraft properties
 es_19 = flygplansklasser.Aircraft(8616, 37.7, 94, 4, 0, -3)
-es_30 = flygplansklasser.Aircraft(16000, 42, 97, 4, 0, -3)
+es_30 = flygplansklasser.Aircraft(16000, 60, 97, 4, 0, -3)
 
 # Other values
 g = 9.82
@@ -38,7 +38,7 @@ def calculate_drag_force(aircraft, a, alt, v): # Drag coefficient, air density, 
     return D
 
 def calculate_lift_coefficient(a):
-    C_l = 0.102 * a + 0.102
+    C_l = 0.11 * a + 0.25
     
     return C_l
 
@@ -47,7 +47,7 @@ def calculate_lift_force(aircraft, a, alt, v):
     
     return L
 
-print(calculate_lift_force(es_30, es_30.climb_angle, 10000, es_30.cruise_speed))
+print(calculate_lift_force(es_30, 4, 4000, es_30.cruise_speed))
 print(es_30.weight*g)
 
 """
