@@ -15,6 +15,21 @@ total_time = 60 * 60    # Seconds
 time_step = 0.1         # Seconds per time step
 time_points = np.arange(0, total_time, time_step)
 
+position = 0
+altitude = 0
+ground_speed = 0
+acceleration = 0
+angle_of_attack = 0
+climb_gradient = 0
+
+positions = []
+altitudes = []
+ground_speeds = []
+accelerations = []
+angle_of_attacks = []
+climb_gradients = []
+
+
 
 def calculate_air_density(h):
     T0 = 288.15     # Sea level standard temperature (K)
@@ -60,6 +75,18 @@ def calculate_gamma(aircraft, altitude,speed, weight):
     
 print(calculate_lift_force(es_30, 5.86, 4000, es_30.cruise_speed))
 print(es_30.weight * g)
+
+
+for t in time_points:
+    ground_speed += acceleration * t
+    position += ground_speed * t
+    
+    positions.append(position)
+    altitudes.append(altitude)
+    ground_speeds.append(ground_speed)
+    accelerations.append(acceleration)
+    angle_of_attacks.append(angle_of_attack)
+    climb_gradients.append(climb_gradient)
 
 """
 air_density_list = []
