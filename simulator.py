@@ -10,7 +10,10 @@ es_30 = flygplansklasser.Aircraft(16000, 60, 97, 4, 0, -3)
 
 # Other values
 g = 9.82
-altitude = 10000
+
+total_time = 60 * 60    # Seconds
+time_step = 0.1         # Seconds per time step
+time_points = np.arange(0, total_time, time_step)
 
 
 def calculate_air_density(h):
@@ -48,7 +51,7 @@ def calculate_lift_force(aircraft, a, alt, v):
     return L
 
 print(calculate_lift_force(es_30, 4, 4000, es_30.cruise_speed))
-print(es_30.weight*g)
+print(es_30.weight * g)
 
 """
 air_density_list = []
