@@ -1,7 +1,9 @@
 import numpy as np
+from scipy.optimize import fsolve
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go
 import flygplansklasser
+
 plt.close()
 
 # Aircraft properties
@@ -14,6 +16,12 @@ g = 9.82
 total_time = 60 * 60    # Seconds
 time_step = 0.1         # Seconds per time step
 time_points = np.arange(0, total_time, time_step)
+
+a_lift_coefficient = 0.11
+b_lift_coefficient = 0.25
+a_drag_coefficient = 0.0005
+b_drag_coefficient = 0.0008
+c_drag_coefficient = 0.0284
 
 position = 0
 altitude = 0
@@ -30,6 +38,12 @@ angle_of_attacks = []
 climb_gradients = []
 
 
+
+def cos(angle):
+    return np.cos(np.radians(angle))
+
+def sin(angle):
+    return np.sin(np.radians(angle))
 
 def calculate_air_density(h):
     T0 = 288.15     # Sea level standard temperature (K)
@@ -65,16 +79,38 @@ def calculate_lift_force(aircraft, a, alt, v):
     
     return L
 
-def calculate_gamma(aircraft, altitude,speed, weight):
+def calculate_gamma(aircraft, altitude, speed, weight):
     for gamma in range(1,20,0.01):
         L = calculate_lift_force(aircraft,gamma,altitude,speed)
         if L == weight*g:
             return gamma
     if gamma <=20:
         print("ERROR MESSAGE: gamma is greater than 20 degrees. Something is wierd")
+
+def calculate_angle_of_attack(aircraft, climb_gradient_, altitude_, speed_):
     
-print(calculate_lift_force(es_30, 5.86, 4000, es_30.cruise_speed))
-print(es_30.weight * g)
+    def func(a):
+        L = calculate_lift_force(aircraft, a, altitude_, speed_)
+        D = calculate_drag_force(aircraft, a, altitude_, speed_)
+        
+        return L * cos(climb_gradient_) - D * sin(climb_gradient_) + (L * sin(climb_gradient_) + D * cos(climb_gradient_)) * sin(a + climb_gradient_) / cos(a + climb_gradient_) - aircraft.weight * g
+    
+    return fsolve(func, 5)[0]
+
+def calculate_thrust(aircraft, climb_gradient_, altitude_, speed_):
+    a = calculate_angle_of_attack(aircraft, climb_gradient_, altitude_, speed_)
+    L = calculate_lift_force(aircraft, a, altitude_, speed_)
+    D = calculate_drag_force(aircraft, a, altitude_, speed_)
+    
+    F = (L * sin(climb_gradient_) + D * cos(climb_gradient_)) / cos(a + climb_gradient_)
+    
+    if F < 0:
+        raise ValueError("Calculated thrust is negative. Check input values.")
+    
+    return F
+    
+print(calculate_angle_of_attack(es_30, 0, 3000, es_30.cruise_speed))
+print(calculate_thrust(es_30, 0, 3000, es_30.cruise_speed))
 
 
 for t in time_points:
