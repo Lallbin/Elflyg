@@ -41,6 +41,8 @@ climb_angles = []
 
 def cos(angle):
     return np.cos(np.radians(angle))
+def tan(angle):
+    return np.tan(np.radians(angle))
 
 def sin(angle):
     return np.sin(np.radians(angle))
@@ -103,9 +105,14 @@ def calculate_thrust(aircraft, climb_angle_, altitude_, speed_):
         raise ValueError("Calculated thrust is negative. Check input values.")
     
     return F
-    
-print(calculate_angle_of_attack(es_30, 4, 3000, es_30.cruise_speed))
-print(calculate_thrust(es_30, 4, 5000, es_30.cruise_speed) * es_30.cruise_speed / 0.7)
+def energy_for_flight_phase(aircraft,altitude,climb_angle,):
+    F = calculate_thrust(aircraft, climb_angle, altitude, aircraft.cruise_speed)
+    return F*d
+def descent_distance_calc(aircraft, altitude):
+    return altitude/tan(aircraft.descent_angle)
+
+print(calculate_angle_of_attack(es_30, 0, 3000, es_30.cruise_speed))
+print(calculate_thrust(es_30, 0, 3000, es_30.cruise_speed))
 
 
 def prel_main(aircraft):
@@ -122,6 +129,8 @@ def prel_main(aircraft):
         accelerations.append(acceleration)
         angle_of_attacks.append(angle_of_attack)
         climb_angles.append(climb_angle)
+
+
 
 """
 air_density_list = []
