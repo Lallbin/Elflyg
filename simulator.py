@@ -41,6 +41,8 @@ climb_gradients = []
 
 def cos(angle):
     return np.cos(np.radians(angle))
+def tan(angle):
+    return np.tan(np.radians(angle))
 
 def sin(angle):
     return np.sin(np.radians(angle))
@@ -79,14 +81,6 @@ def calculate_lift_force(aircraft, a, alt, v):
     
     return L
 
-def calculate_gamma(aircraft, altitude, speed, weight):
-    for gamma in range(1,20,0.01):
-        L = calculate_lift_force(aircraft,gamma,altitude,speed)
-        if L == weight*g:
-            return gamma
-    if gamma <=20:
-        print("ERROR MESSAGE: gamma is greater than 20 degrees. Something is wierd")
-
 def calculate_angle_of_attack(aircraft, climb_gradient_, altitude_, speed_):
     
     def func(a):
@@ -94,7 +88,7 @@ def calculate_angle_of_attack(aircraft, climb_gradient_, altitude_, speed_):
         D = calculate_drag_force(aircraft, a, altitude_, speed_)
         
         return L * cos(climb_gradient_) - D * sin(climb_gradient_) + (L * sin(climb_gradient_) + D * cos(climb_gradient_)) * sin(a + climb_gradient_) / cos(a + climb_gradient_) - aircraft.weight * g
-    
+
     return fsolve(func, 5)[0]
 
 def calculate_thrust(aircraft, climb_gradient_, altitude_, speed_):
@@ -108,7 +102,12 @@ def calculate_thrust(aircraft, climb_gradient_, altitude_, speed_):
         raise ValueError("Calculated thrust is negative. Check input values.")
     
     return F
-    
+def energy_for_flight_phase(aircraft,altitude,climb_angle,):
+    F = calculate_thrust(aircraft, climb_angle, altitude, aircraft.cruise_speed)
+    return F*d
+def descent_distance_calc(aircraft, altitude):
+    return altitude/tan(aircraft.descent_angle)
+
 print(calculate_angle_of_attack(es_30, 0, 3000, es_30.cruise_speed))
 print(calculate_thrust(es_30, 0, 3000, es_30.cruise_speed))
 
@@ -123,6 +122,8 @@ for t in time_points:
     accelerations.append(acceleration)
     angle_of_attacks.append(angle_of_attack)
     climb_gradients.append(climb_gradient)
+
+
 
 """
 air_density_list = []
