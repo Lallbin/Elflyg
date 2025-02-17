@@ -7,8 +7,8 @@ import flygplansklasser
 plt.close()
 
 # Aircraft properties
-es_19 = flygplansklasser.Aircraft(8616, 37.7, 94, 4, 0, -3)
-es_30 = flygplansklasser.Aircraft(21000, 60, 97, 4, 0, -3)
+es_19 = flygplansklasser.Aircraft(8616, 37.7, 94, 4, 0, -3, 0.7)
+es_30 = flygplansklasser.Aircraft(21000, 60, 97, 4, 0, -3, 0.7)
 
 # Other values
 g = 9.82
@@ -28,14 +28,14 @@ altitude = 0
 ground_speed = 0
 acceleration = 0
 angle_of_attack = 0
-climb_gradient = 0
+climb_angle = 0
 
 positions = []
 altitudes = []
 ground_speeds = []
 accelerations = []
 angle_of_attacks = []
-climb_gradients = []
+climb_angles = []
 
 
 
@@ -44,6 +44,9 @@ def cos(angle):
 
 def sin(angle):
     return np.sin(np.radians(angle))
+
+def tan(angle):
+    return sin(angle) / cos(angle)
 
 def calculate_air_density(h):
     T0 = 288.15     # Sea level standard temperature (K)
@@ -70,7 +73,7 @@ def calculate_drag_force(aircraft, a, alt, v): # Drag coefficient, air density, 
     return D
 
 def calculate_lift_coefficient(a):
-    C_l = 0.11 * a + 0.25
+    C_l = 0.102 * a + 0.102
     
     return C_l
 
@@ -79,50 +82,46 @@ def calculate_lift_force(aircraft, a, alt, v):
     
     return L
 
-def calculate_gamma(aircraft, altitude, speed, weight):
-    for gamma in range(1,20,0.01):
-        L = calculate_lift_force(aircraft,gamma,altitude,speed)
-        if L == weight*g:
-            return gamma
-    if gamma <=20:
-        print("ERROR MESSAGE: gamma is greater than 20 degrees. Something is wierd")
-
-def calculate_angle_of_attack(aircraft, climb_gradient_, altitude_, speed_):
+def calculate_angle_of_attack(aircraft, climb_angle_, altitude_, speed_):
     
     def func(a):
         L = calculate_lift_force(aircraft, a, altitude_, speed_)
         D = calculate_drag_force(aircraft, a, altitude_, speed_)
         
-        return L * cos(climb_gradient_) - D * sin(climb_gradient_) + (L * sin(climb_gradient_) + D * cos(climb_gradient_)) * sin(a + climb_gradient_) / cos(a + climb_gradient_) - aircraft.weight * g
+        return L * cos(climb_angle_) - D * sin(climb_angle_) + (L * sin(climb_angle_) + D * cos(climb_angle_)) * sin(a + climb_angle_) / cos(a + climb_angle_) - aircraft.weight * g
     
     return fsolve(func, 5)[0]
 
-def calculate_thrust(aircraft, climb_gradient_, altitude_, speed_):
-    a = calculate_angle_of_attack(aircraft, climb_gradient_, altitude_, speed_)
+def calculate_thrust(aircraft, climb_angle_, altitude_, speed_):
+    a = calculate_angle_of_attack(aircraft, climb_angle_, altitude_, speed_)
     L = calculate_lift_force(aircraft, a, altitude_, speed_)
     D = calculate_drag_force(aircraft, a, altitude_, speed_)
     
-    F = (L * sin(climb_gradient_) + D * cos(climb_gradient_)) / cos(a + climb_gradient_)
+    F = (L * sin(climb_angle_) + D * cos(climb_angle_)) / cos(a + climb_angle_)
     
     if F < 0:
         raise ValueError("Calculated thrust is negative. Check input values.")
     
     return F
     
-print(calculate_angle_of_attack(es_30, 0, 3000, es_30.cruise_speed))
-print(calculate_thrust(es_30, 0, 3000, es_30.cruise_speed))
+print(calculate_angle_of_attack(es_30, 4, 3000, es_30.cruise_speed))
+print(calculate_thrust(es_30, 4, 5000, es_30.cruise_speed) * es_30.cruise_speed / 0.7)
 
 
-for t in time_points:
-    ground_speed += acceleration * t
-    position += ground_speed * t
-    
-    positions.append(position)
-    altitudes.append(altitude)
-    ground_speeds.append(ground_speed)
-    accelerations.append(acceleration)
-    angle_of_attacks.append(angle_of_attack)
-    climb_gradients.append(climb_gradient)
+def prel_main(aircraft):
+    for t in time_points:
+        if altitude < 3000:
+            climb_angle = aircraft.climb_angle
+        
+        ground_speed += acceleration * t
+        position += ground_speed * t
+        
+        positions.append(position)
+        altitudes.append(altitude)
+        ground_speeds.append(ground_speed)
+        accelerations.append(acceleration)
+        angle_of_attacks.append(angle_of_attack)
+        climb_angles.append(climb_angle)
 
 """
 air_density_list = []
