@@ -8,13 +8,13 @@ plt.close()
 
 # Aircraft properties
 es_19 = flygplansklasser.Aircraft(8616, 37.7, 94, 92, 79, 4, 0, -3, 0.7)
-es_30 = flygplansklasser.Aircraft(25000, 60, 97, 94, 80, 4, 0, -3, 0.7)
+es_30 = flygplansklasser.Aircraft(25000, 80, 97, 94, 97, 4, 0, -3, 0.7)
 
 # Other values
 g = 9.82
 
 total_time = 60 * 60    # Seconds
-time_step = 60 * 10         # Seconds per time step
+time_step = 1         # Seconds per time step
 time_points = np.arange(0, total_time, time_step)
 
 total_distance = 400 * 1000
@@ -112,6 +112,9 @@ print(calculate_drag_force(es_30, calculate_angle_of_attack(es_30, 4, 1500, 94),
 
 
 def prel_main(aircraft):
+    stage = 1
+    
+    t = 0
     position = 0
     altitude = 0
     ground_speed = 0
@@ -120,6 +123,7 @@ def prel_main(aircraft):
     climb_angle = 0
     energy_consumtion = 0
 
+    times = []
     positions = []
     altitudes = []
     ground_speeds = []
@@ -128,26 +132,35 @@ def prel_main(aircraft):
     climb_angles = []
     energy_consumtions = []
     
-    t = 0
     flying = True
     while flying:
         t += time_step
         
-        if altitude < 3000:
+        if stage == 1:                                                         # Climb
             climb_angle = aircraft.climb_angle
             ground_speed = aircraft.climb_speed * cos(climb_angle)
-        elif total_distance - descent_distance_calc(aircraft, 3000) > position:
+            
+            if altitude >= 3000:
+                stage = 2
+        
+        elif stage == 2:     # Cruise
             climb_angle = aircraft.cruise_angle
             ground_speed = aircraft.cruise_speed * cos(climb_angle)
-        else:
+            
+            if total_distance + descent_distance_calc(aircraft, 3000) < position:
+                stage = 3
+        
+        elif stage == 3:                                                                       # Descent
             climb_angle = aircraft.descent_angle
             ground_speed = aircraft.descent_speed * cos(climb_angle)
         
         
         position += ground_speed * time_step
         altitude += ground_speed * tan(climb_angle) * time_step
+        angle_of_attack = calculate_angle_of_attack(aircraft, climb_angle, altitude, ground_speed / cos(climb_angle))
         energy_consumtion = energy_for_flight_phase(aircraft, altitude, climb_angle, ground_speed / cos(climb_angle)) / aircraft.propeller_efficiency
         
+        times.append(t)
         positions.append(position)
         altitudes.append(altitude)
         ground_speeds.append(ground_speed)
@@ -158,25 +171,27 @@ def prel_main(aircraft):
         
         if position >= total_distance:
             flying = False
-            
-    return sum(energy_consumtions), t
+    
+    print(sum(energy_consumtions) / 3600000)
+    print(t/3600)
+    
+    plt.figure(figsize=(8, 5))
+    plt.plot(positions, altitudes)
+    plt.title("Altitude over distance")
+    plt.xlabel("Distance (m)")
+    plt.ylabel("Altitude (m)")
+    plt.show()
+    
+    plt.figure(figsize=(8, 5))
+    plt.plot(positions, angle_of_attacks)
+    plt.title("AOA over distance")
+    plt.xlabel("Distance (m)")
+    plt.ylabel("AOA (degrees)")
+    plt.show()
+    
+prel_main(es_30)
 
-print()
-print(prel_main(es_30)[0] / 3600000)
-print((prel_main(es_30)[0] / 3600000) / (prel_main(es_30)[1] / 3600))
-
-"""
-air_density_list = []
-altitude_list = np.linspace(0, 11000, 111)
-for altitude in altitude_list:
-    air_density_list.append(calculate_air_density(altitude))
 
 
 
-plt.figure(figsize=(8, 5))
-plt.plot(air_density_list, altitude_list)
-plt.title("Air density vs altitude")
-plt.xlabel("Air density (kg/m^3)")
-plt.ylabel("Altitude (m)")
-plt.show()
-"""
+
