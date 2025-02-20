@@ -8,7 +8,7 @@ plt.close()
 
 # Aircraft properties
 es_19 = flygplansklasser.Aircraft(8616, 37.7, 94, 92, 79, 4, 0, -3, 0.7)
-es_30 = flygplansklasser.Aircraft(21000, 60, 97, 94, 81, 4, 0, -3, 0.7)
+es_30 = flygplansklasser.Aircraft(25000, 60, 97, 94, 80, 4, 0, -3, 0.7)
 
 # Other values
 g = 9.82
