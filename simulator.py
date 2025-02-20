@@ -152,14 +152,14 @@ def prel_main(aircraft):
             climb_angle = aircraft.climb_angle
             ground_speed = aircraft.climb_speed * cos(climb_angle)
             
-            if altitude >= 3000:
+            if altitude >= 3000: #Om vi är över vår cruising altitude går vi över till cruise
                 stage = 2
         
         elif stage == 2:     # Cruise
             climb_angle = aircraft.cruise_angle
             ground_speed = aircraft.cruise_speed * cos(climb_angle)
             
-            if total_distance + descent_distance_calc(aircraft, 3000) < position:
+            if total_distance + descent_distance_calc(aircraft, 3000) < position: #om vi har nått till det området när vi behöver stiga ner så går vi över till descent
                 stage = 3
         
         elif stage == 3:     # Descent
@@ -185,8 +185,8 @@ def prel_main(aircraft):
         if position >= total_distance:
             flying = False
     
-    print(sum(energy_consumtions) / 3600000)
-    print(t/3600)
+    print(sum(energy_consumtions) / 3600000) #Printa totala energikonsumptionen och gör om till kWh
+    print(t/3600) #tiden i timmar
     
     #Plotta flygturen med alla flygfaser
     plt.figure(figsize=(8, 5))
