@@ -110,6 +110,7 @@ def descent_distance_calc(aircraft, altitude):
     return altitude / tan(aircraft.descent_angle)
 
 # Testvärden som skrevs för att testa värden, kommentera in ifall ni vill se ett värde
+
 #print(calculate_angle_of_attack(es_30, 0, 3000, es_30.cruise_speed))
 #print(calculate_thrust(es_30, 4, 3000, es_30.climb_speed))
 #print(calculate_lift_force(es_30, calculate_angle_of_attack(es_30, 4, 1500, 94), 1500, 94))
@@ -119,6 +120,7 @@ def descent_distance_calc(aircraft, altitude):
 def prel_main(aircraft):
     stage = 1 # definierar vilken del av flygfasen vi är i stage = 1 = climb, stage = 2 = cruise, stage = 3 = descent
     
+    #Värden som beskriver flygplanets position och rörelse 
     t = 0
     position = 0
     altitude = 0
@@ -128,6 +130,7 @@ def prel_main(aircraft):
     climb_angle = 0
     energy_consumtion = 0
 
+    #Listor med alla värden från hela flygturen
     times = []
     positions = []
     altitudes = []
