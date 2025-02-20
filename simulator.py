@@ -8,7 +8,8 @@ plt.close()
 
 # Aircraft properties
 es_19 = flygplansklasser.Aircraft(8616, 37.7, 94, 92, 79, 4, 0, -3, 0.7)
-es_30 = flygplansklasser.Aircraft(25000, 60, 97, 94, 80, 4, 0, -3, 0.7)
+es_30 = flygplansklasser.Aircraft(21000, 60, 97, 94, 80, 4, 0, -3, 0.7)
+lek_30 = flygplansklasser.Aircraft(21000, 80, 97, 94, 90, 4, 0, -3, 0.7)
 
 # Other values
 g = 9.82
@@ -31,14 +32,12 @@ c_drag_coefficient = 0.0284
 # Gör så at cos/sin/tan funkar som vi vill att de ska göra
 def cos(angle):
     return np.cos(np.radians(angle))
-def tan(angle):
-    return np.tan(np.radians(angle))
 
 def sin(angle):
     return np.sin(np.radians(angle))
 
 def tan(angle):
-    return sin(angle) / cos(angle)
+    return np.tan(np.radians(angle))
 
 def calculate_air_density(h):
     T0 = 288.15     # Sea level standard temperature (K)
@@ -118,7 +117,7 @@ def descent_distance_calc(aircraft, altitude):
 
 
 def prel_main(aircraft):
-    stage = 1 # definierar vilken del av flygfasen vi är i stage = 1 = climb, stage = 2 = cruise, stage = 3 = descent
+    stage = 0 # definierar vilken del av flygfasen vi är i stage = 0 = takeoff, stage = 1 = climb, stage = 2 = cruise, stage = 3 = descent
     
     #Värden som beskriver flygplanets position och rörelse 
     t = 0
@@ -146,7 +145,10 @@ def prel_main(aircraft):
     while flying:
         t += time_step
         
-        if stage == 1:      # Climb
+        if stage == 0:
+            
+        
+        elif stage == 1:      # Climb
             climb_angle = aircraft.climb_angle
             ground_speed = aircraft.climb_speed * cos(climb_angle)
             
@@ -196,13 +198,13 @@ def prel_main(aircraft):
     
     #Plotta an figur på hur våra angle of attacks ser ut. 
     plt.figure(figsize=(8, 5))
-    plt.plot(positions, angle_of_attacks)
+    plt.plot(positions, energy_consumtions)
     plt.title("AOA over distance")
     plt.xlabel("Distance (m)")
     plt.ylabel("AOA (degrees)")
     plt.show()
     
-prel_main(es_30)
+prel_main(lek_30)
 
 
 
