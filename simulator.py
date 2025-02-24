@@ -142,7 +142,7 @@ def prel_main(aircraft):
     t = 0
     position = 0
     altitude = 0
-    ground_speed = 1
+    ground_speed = 0
     acceleration = 0
     angle_of_attack = 0
     climb_angle = 0
