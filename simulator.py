@@ -7,9 +7,9 @@ import flygplansklasser
 plt.close()
 
 # Aircraft properties
-es_19 = flygplansklasser.Aircraft(8616, 37.7, 94, 92, 79, 4, 0, -3, 0.7,1100)
-es_30 = flygplansklasser.Aircraft(21000, 60, 97, 94, 80, 4, 0, -3, 0.7,1100)
-lek_30 = flygplansklasser.Aircraft(21000, 80, 97, 94, 90, 4, 0, -3, 0.7,1100)
+es_19 = flygplansklasser.Aircraft(8616, 37.7, 94, 92, 79,78, 4, 0, -3, 0.7,1100)
+es_30 = flygplansklasser.Aircraft(21000, 60, 97, 94, 80,78, 4, 0, -3, 0.7,1100)
+lek_30 = flygplansklasser.Aircraft(21000, 80, 97, 94, 90,78, 4, 0, -3, 0.7,1100)
 
 # Other values
 g = 9.82
@@ -99,9 +99,13 @@ def calculate_thrust(aircraft, climb_angle_, altitude_, speed_):
     
     return F
 #Beräkna hur mycket energi flygplanet behöver för en viss tid. I loopen kör detta med ett lågt time step för att få alla steg i simulationen.
-def energy_for_flight_phase(aircraft,altitude,climb_angle,speed): 
-    F = calculate_thrust(aircraft, climb_angle, altitude, speed)
-    d = speed*time_step
+def energy_for_flight_phase(aircraft,altitude,climb_angle,speed,stage):
+    if stage < 1:
+        F =calculate_takeoff_thrust(aircraft,0, climb_angle, altitude, ground_speed)
+        d = speed*time_step
+    else: 
+        F = calculate_thrust(aircraft, climb_angle, altitude, speed)
+        d = speed*time_step
     return F*d
 
 #Beräkna hur lång distans vi behöver för att komma ner till marken
@@ -109,18 +113,18 @@ def descent_distance_calc(aircraft, altitude):
     return altitude / tan(aircraft.descent_angle)
 
 
-def required_takeoff_thrust(aircraft, angle_of_attack):
-    F = aircraft.weight *(calculate_drag_coefficient(angle_of_attack)/calculate_lift_coefficient(angle_of_attack))
-    return F
-
 #calculating takeoff accelleration assuming constant accelleration
-def calculate_takeoff_acc(aircraft):
-    takeoff_time = aircraft.runway/(aircraft.climb_speed/2)
+def calculate_takeoff_acc(aircraft): # förslag att ge 300m till pre climb stadiet
+    takeoff_time = (aircraft.runway)/(aircraft.climb_speed/2)
     return aircraft.climb_speed/takeoff_time
 
-def calculate_takeoff_thrust(aircraft, climb_angle_, altitude_, speed_):
-    a = ????? #behöver ett värde här. Funderar på att ta climb angle of attack vid marknivå eller om vi kan ta något annat. 
-    return aircraft.weight*calculate_takeoff_acc(aircraft) + calculate_drag_force(aircraft,a,altitude_,speed_)
+def calculate_takeoff_thrust(aircraft,a, altitude_, speed_):
+    if speed_ >= 78:
+       
+        return aircraft.weight*calculate_takeoff_acc(aircraft)+(calculate_drag_coefficient(a)/calculate_lift_coefficient(a)*((speed_/aircraft.takeoff_speed)**2))*aircraft.weight*g
+    else: 
+        
+        return aircraft.weight*calculate_takeoff_acc(aircraft) + calculate_drag_force(aircraft,a,altitude_,speed_)
     
     
 # Testvärden som skrevs för att testa värden, kommentera in ifall ni vill se ett värde
@@ -161,10 +165,18 @@ def prel_main(aircraft):
         t += time_step
         
         if stage == 0:
-            goal = required_takeoff_thrust(aircraft, angle_of_attack)
-            current_thrust = calculate_thrust(aircraft, climb_angle, altitude, ground_speed)
-            ground_speed = current_thrust*time_step*cos(climb_angle)
-            if current_thrust == goal and ground_speed > aircraft.climb_speed:
+            current_thrust = calculate_takeoff_thrust(aircraft,0, climb_angle, altitude, ground_speed)
+            ground_speed += current_thrust*time_step*cos(climb_angle)/aircraft.weight
+            if ground_speed > 78:
+                stage = 0.5
+                
+        elif stage == 0.5:
+            climb_angle = aircraft.climb_angle
+            angle_of_attack = 10
+            current_thrust = calculate_takeoff_thrust(aircraft,angle_of_attack, climb_angle, altitude, ground_speed)
+            ground_speed += current_thrust*time_step*cos(climb_angle)/aircraft.weight
+            #"pre climb" equations
+            if ground_speed >= aircraft.climb_speed*cos(climb_angle):
                 stage = 1
         
         elif stage == 1:      # Climb
@@ -189,7 +201,7 @@ def prel_main(aircraft):
         position += ground_speed * time_step
         altitude += ground_speed * tan(climb_angle) * time_step
         angle_of_attack = calculate_angle_of_attack(aircraft, climb_angle, altitude, ground_speed / cos(climb_angle))
-        energy_consumtion = energy_for_flight_phase(aircraft, altitude, climb_angle, ground_speed / cos(climb_angle)) / aircraft.propeller_efficiency
+        energy_consumtion = energy_for_flight_phase(aircraft, altitude, climb_angle, ground_speed / cos(climb_angle),stage) / aircraft.propeller_efficiency
         
         #lägg till alla värden i våra listor
         times.append(t)
@@ -223,7 +235,7 @@ def prel_main(aircraft):
     plt.ylabel("AOA (degrees)")
     plt.show()
     
-prel_main(lek_30)
+prel_main(es_30)
 
 
 
