@@ -7,9 +7,9 @@ import flygplansklasser
 plt.close()
 
 # Aircraft properties
-es_19 = flygplansklasser.Aircraft(8616, 37.7, 94, 92, 79, 4, 0, -3, 0.7)
-es_30 = flygplansklasser.Aircraft(21000, 60, 97, 94, 80, 4, 0, -3, 0.7)
-lek_30 = flygplansklasser.Aircraft(21000, 80, 97, 94, 90, 4, 0, -3, 0.7)
+es_19 = flygplansklasser.Aircraft(8616, 37.7, 94, 92, 79, 4, 0, -3, 0.7,1100)
+es_30 = flygplansklasser.Aircraft(21000, 60, 97, 94, 80, 4, 0, -3, 0.7,1100)
+lek_30 = flygplansklasser.Aircraft(21000, 80, 97, 94, 90, 4, 0, -3, 0.7,1100)
 
 # Other values
 g = 9.82
@@ -108,6 +108,21 @@ def energy_for_flight_phase(aircraft,altitude,climb_angle,speed):
 def descent_distance_calc(aircraft, altitude): 
     return altitude / tan(aircraft.descent_angle)
 
+
+def required_takeoff_thrust(aircraft, angle_of_attack):
+    F = aircraft.weight *(calculate_drag_coefficient(angle_of_attack)/calculate_lift_coefficient(angle_of_attack))
+    return F
+
+#calculating takeoff accelleration assuming constant accelleration
+def calculate_takeoff_acc(aircraft):
+    takeoff_time = aircraft.runway/(aircraft.climb_speed/2)
+    return aircraft.climb_speed/takeoff_time
+
+def calculate_takeoff_thrust(aircraft, climb_angle_, altitude_, speed_):
+    a = ????? #behöver ett värde här. Funderar på att ta climb angle of attack vid marknivå eller om vi kan ta något annat. 
+    return aircraft.weight*calculate_takeoff_acc(aircraft) + calculate_drag_force(aircraft,a,altitude_,speed_)
+    
+    
 # Testvärden som skrevs för att testa värden, kommentera in ifall ni vill se ett värde
 
 #print(calculate_angle_of_attack(es_30, 0, 3000, es_30.cruise_speed))
@@ -123,7 +138,7 @@ def prel_main(aircraft):
     t = 0
     position = 0
     altitude = 0
-    ground_speed = 0
+    ground_speed = 1
     acceleration = 0
     angle_of_attack = 0
     climb_angle = 0
@@ -146,7 +161,11 @@ def prel_main(aircraft):
         t += time_step
         
         if stage == 0:
-            
+            goal = required_takeoff_thrust(aircraft, angle_of_attack)
+            current_thrust = calculate_thrust(aircraft, climb_angle, altitude, ground_speed)
+            ground_speed = current_thrust*time_step*cos(climb_angle)
+            if current_thrust == goal and ground_speed > aircraft.climb_speed:
+                stage = 1
         
         elif stage == 1:      # Climb
             climb_angle = aircraft.climb_angle
