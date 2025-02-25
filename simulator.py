@@ -7,9 +7,9 @@ import flygplansklasser
 plt.close()
 
 # Aircraft properties
-es_19 = flygplansklasser.Aircraft(8616, 37.7, 94, 92, 79,78, 4, 0, -3, 0.7,1100)
-es_30 = flygplansklasser.Aircraft(21000, 60, 97, 94, 80,78, 4, 0, -3, 0.7,1100)
-lek_30 = flygplansklasser.Aircraft(21000, 80, 97, 94, 90,78, 4, 0, -3, 0.7,1100)
+es_19 = flygplansklasser.Aircraft(8616, 37.7, 94, 92, 79, 78, 4, 0, -3, 0.7, 1100, 50000)
+es_30 = flygplansklasser.Aircraft(21000, 60, 97, 94, 80, 78, 4, 0, -3, 0.7, 1100, 100000)
+lek_30 = flygplansklasser.Aircraft(21000, 60, 97, 94, 90, 78, 4, 0, -3, 0.7, 1100, 100000)
 
 # Other values
 g = 9.82
@@ -101,7 +101,7 @@ def calculate_thrust(aircraft, climb_angle_, altitude_, speed_):
 #Beräkna hur mycket energi flygplanet behöver för en viss tid. I loopen kör detta med ett lågt time step för att få alla steg i simulationen.
 def energy_for_flight_phase(aircraft,altitude,climb_angle,speed,stage):
     if stage < 1:
-        F =calculate_takeoff_thrust(aircraft,0, climb_angle, altitude, ground_speed)
+        F =calculate_takeoff_thrust(aircraft,0, climb_angle, altitude, speed)
         d = speed*time_step
     else: 
         F = calculate_thrust(aircraft, climb_angle, altitude, speed)
@@ -120,12 +120,27 @@ def calculate_takeoff_acc(aircraft): # förslag att ge 300m till pre climb stadi
 
 def calculate_takeoff_thrust(aircraft,a, altitude_, speed_):
     if speed_ >= 78:
-       
         return aircraft.weight*calculate_takeoff_acc(aircraft)+(calculate_drag_coefficient(a)/calculate_lift_coefficient(a)*((speed_/aircraft.takeoff_speed)**2))*aircraft.weight*g
-    else: 
-        
-        return aircraft.weight*calculate_takeoff_acc(aircraft) + calculate_drag_force(aircraft,a,altitude_,speed_)
     
+    else: 
+        return aircraft.weight*calculate_takeoff_acc(aircraft) + calculate_drag_force(aircraft,a,altitude_,speed_)
+
+def calculate_runway_acceleration(aircraft, F_max_, altitude_, speed_):
+    D = calculate_drag_force(aircraft, 0, altitude_, speed_)
+    acceleration_x_ = (F_max_ - D) / aircraft.weight
+    
+    return acceleration_x_
+
+def calculate_takeoff_acceleration(aircraft, F_max_, angle_of_attack_takeoff_, climb_angle_, altitude_, speed_):
+    L = calculate_lift_force(aircraft, angle_of_attack_takeoff_, altitude_, speed_)
+    D = calculate_drag_force(aircraft, angle_of_attack_takeoff_, altitude_, speed_)
+    
+    acceleration_x_ = (F_max_ * cos(angle_of_attack_takeoff_ + climb_angle_) - L * sin(climb_angle_) - D * cos(climb_angle_)) / aircraft.weight
+    acceleration_y_ = (F_max_ * sin(angle_of_attack_takeoff_ + climb_angle_) + L * cos(climb_angle_) - D * sin(climb_angle_) - aircraft.weight * g) / aircraft.weight
+    
+    acceleration_ = (acceleration_x_**2 + acceleration_y_**2)**0.5
+    
+    return acceleration_x_, acceleration_y_, acceleration_
     
 # Testvärden som skrevs för att testa värden, kommentera in ifall ni vill se ett värde
 
@@ -136,27 +151,46 @@ def calculate_takeoff_thrust(aircraft,a, altitude_, speed_):
 
 
 def prel_main(aircraft):
-    stage = 0 # definierar vilken del av flygfasen vi är i stage = 0 = takeoff, stage = 1 = climb, stage = 2 = cruise, stage = 3 = descent
+    stage = 0 # definierar vilken del av flygfasen vi är i, stage = 0 = takeoff, stage = 1 = climb, stage = 2 = cruise, stage = 3 = descent
     
     #Värden som beskriver flygplanets position och rörelse 
     t = 0
+    time_step = 0.1
+    
     position = 0
     altitude = 0
-    ground_speed = 0
+    
+    speed_x = 0
+    speed_y = 0
+    speed = 0
+    
+    acceleration_x = 0
+    acceleration_y = 0
     acceleration = 0
+    
     angle_of_attack = 0
     climb_angle = 0
+    
     energy_consumtion = 0
 
     #Listor med alla värden från hela flygturen
-    times = []
-    positions = []
-    altitudes = []
-    ground_speeds = []
-    accelerations = []
-    angle_of_attacks = []
-    climb_angles = []
-    energy_consumtions = []
+    t_list = []
+    
+    position_list = []
+    altitude_list = []
+    
+    speed_x_list = []
+    speed_y_list = []
+    speed_list = []
+    
+    acceleration_x_list = []
+    acceleration_y_list = []
+    acceleration_list = []
+    
+    angle_of_attack_list = []
+    climb_angle_list = []
+    
+    energy_consumtion_list = []
     
     #Loopen vandrar i tid och kollar hur en flygfas ser ut genom att lägga varje punkt i en lista och 
     #sedan plotta den listan och summera energi för att få den totala energin.
@@ -165,63 +199,125 @@ def prel_main(aircraft):
         t += time_step
         
         if stage == 0:
-            current_thrust = calculate_takeoff_thrust(aircraft,0, climb_angle, altitude, ground_speed)
-            ground_speed += current_thrust*time_step*cos(climb_angle)/aircraft.weight
-            if ground_speed > 78:
+            #current_thrust = calculate_takeoff_thrust(aircraft,0, climb_angle, altitude, ground_speed)
+            #ground_speed += current_thrust*time_step*cos(climb_angle)/aircraft.weight
+            
+            acceleration_x = calculate_runway_acceleration(aircraft, aircraft.max_thrust, altitude, speed)
+            acceleration = acceleration_x
+            
+            speed_x += acceleration_x * time_step
+            speed += acceleration * time_step
+            
+            position += speed_x * time_step
+            altitude += speed_y * time_step
+            
+            if speed > aircraft.takeoff_speed:
                 stage = 0.5
                 
         elif stage == 0.5:
-            climb_angle = aircraft.climb_angle
-            angle_of_attack = 10
-            current_thrust = calculate_takeoff_thrust(aircraft,angle_of_attack, climb_angle, altitude, ground_speed)
-            ground_speed += current_thrust*time_step*cos(climb_angle)/aircraft.weight
+            #climb_angle = aircraft.climb_angle
+            #angle_of_attack = 10
+            #current_thrust = calculate_takeoff_thrust(aircraft,angle_of_attack, climb_angle, altitude, ground_speed)
+            #ground_speed += current_thrust*time_step*cos(climb_angle)/aircraft.weight
             #"pre climb" equations
-            if ground_speed >= aircraft.climb_speed*cos(climb_angle):
+            
+            angle_of_attack = 10 - climb_angle
+            if angle_of_attack < aircraft.climb_angle:
+                angle_of_attack = aircraft.climb_angle
+            
+            acceleration_x, acceleration_y, acceleration = calculate_takeoff_acceleration(aircraft, aircraft.max_thrust, angle_of_attack, climb_angle, altitude, speed)
+            
+            speed_x += acceleration_x * time_step
+            speed_y += acceleration_y * time_step
+            speed += acceleration * time_step
+            
+            climb_angle = np.degrees(np.arctan(speed_y / speed_x))
+            
+            position += speed_x * time_step
+            altitude += speed_y * time_step
+            
+            if speed >= aircraft.climb_speed:
                 stage = 1
+                acceleration_x = 0
+                acceleration_y = 0
+                acceleration = 0
+                
         
         elif stage == 1:      # Climb
             climb_angle = aircraft.climb_angle
-            ground_speed = aircraft.climb_speed * cos(climb_angle)
+            
+            speed = aircraft.climb_speed
+            speed_x = speed * cos(climb_angle)
+            speed_y = speed * sin(climb_angle)
+            
+            position += speed_x * time_step
+            altitude += speed_y * time_step
+            
+            angle_of_attack = calculate_angle_of_attack(aircraft, climb_angle, altitude, speed)
             
             if altitude >= 3000: #Om vi är över vår cruising altitude går vi över till cruise
                 stage = 2
+                flying = False
         
         elif stage == 2:     # Cruise
             climb_angle = aircraft.cruise_angle
-            ground_speed = aircraft.cruise_speed * cos(climb_angle)
+            
+            speed = aircraft.cruise_speed
+            speed_x = speed
+            speed_y = 0
+            
+            position += speed_x * time_step
+            altitude += speed_y * time_step
+            
+            angle_of_attack = calculate_angle_of_attack(aircraft, climb_angle, altitude, speed)
             
             if total_distance + descent_distance_calc(aircraft, 3000) < position: #om vi har nått till det området när vi behöver stiga ner så går vi över till descent
                 stage = 3
         
         elif stage == 3:     # Descent
             climb_angle = aircraft.descent_angle
-            ground_speed = aircraft.descent_speed * cos(climb_angle)
+            
+            speed = aircraft.descent_speed
+            speed_x = speed * cos(climb_angle)
+            speed_y = speed * sin(climb_angle)
+            
+            position += speed_x * time_step
+            altitude += speed_y * time_step
+            
+            angle_of_attack = calculate_angle_of_attack(aircraft, climb_angle, altitude, speed)
         
-        #uppdatera position, angle of attack och den energin som krävs för att ta sig dit.
-        position += ground_speed * time_step
-        altitude += ground_speed * tan(climb_angle) * time_step
-        angle_of_attack = calculate_angle_of_attack(aircraft, climb_angle, altitude, ground_speed / cos(climb_angle))
-        energy_consumtion = energy_for_flight_phase(aircraft, altitude, climb_angle, ground_speed / cos(climb_angle),stage) / aircraft.propeller_efficiency
+
+        #energy_consumtion = energy_for_flight_phase(aircraft, altitude, climb_angle, ground_speed / cos(climb_angle),stage) / aircraft.propeller_efficiency
         
         #lägg till alla värden i våra listor
-        times.append(t)
-        positions.append(position)
-        altitudes.append(altitude)
-        ground_speeds.append(ground_speed)
-        accelerations.append(acceleration)
-        angle_of_attacks.append(angle_of_attack)
-        climb_angles.append(climb_angle)
-        energy_consumtions.append(energy_consumtion)
+        t_list.append(t)
+        
+        position_list.append(position)
+        altitude_list.append(altitude)
+        
+        speed_x_list.append(speed_x)
+        speed_y_list.append(speed_y)        
+        speed_list.append(speed)
+        
+        acceleration_x_list.append(acceleration_x)
+        acceleration_y_list.append(acceleration_y)
+        acceleration_list.append(acceleration)
+        
+        angle_of_attack_list.append(angle_of_attack)
+        climb_angle_list.append(climb_angle)
+        
+        energy_consumtion_list.append(energy_consumtion)
         
         if position >= total_distance:
             flying = False
     
-    print(sum(energy_consumtions) / 3600000) #Printa totala energikonsumptionen och gör om till kWh
+    #print(sum(energy_consumtions) / 3600000) #Printa totala energikonsumptionen och gör om till kWh
     print(t/3600) #tiden i timmar
     
     #Plotta flygturen med alla flygfaser
+    """
     plt.figure(figsize=(8, 5))
-    plt.plot(positions, altitudes)
+    plt.plot(t_list, altitude_list)
     plt.title("Altitude over distance")
     plt.xlabel("Distance (m)")
     plt.ylabel("Altitude (m)")
@@ -229,15 +325,43 @@ def prel_main(aircraft):
     
     #Plotta an figur på hur våra angle of attacks ser ut. 
     plt.figure(figsize=(8, 5))
-    plt.plot(positions, energy_consumtions)
+    plt.plot(t_list, angle_of_attack_list)
     plt.title("AOA over distance")
     plt.xlabel("Distance (m)")
     plt.ylabel("AOA (degrees)")
     plt.show()
     
-prel_main(es_30)
+    plt.figure(figsize=(8, 5))
+    plt.plot(t_list, speed_list)
+    plt.title("Ground speed over time")
+    plt.show()
+    
+    plt.figure(figsize=(8, 5))
+    plt.plot(t_list, acceleration_list)
+    plt.title("Acceleration over time")
+    plt.show()
+    
+    plt.figure(figsize=(8, 5))
+    plt.plot(t_list, acceleration_x_list)
+    plt.title("Acceleration over time")
+    plt.show()
+    
+    plt.figure(figsize=(8, 5))
+    plt.plot(t_list, acceleration_y_list)
+    plt.title("Acceleration over time")
+    plt.show()
+    
+    plt.figure(figsize=(8, 5))
+    plt.plot(position_list, climb_angle_list)
+    plt.title("Climb angle over distance")
+    plt.show()
+    
+    plt.figure(figsize=(8, 5))
+    plt.plot(position_list, altitude_list)
+    plt.title("Altitude over distance")
+    plt.show()
+    """
+    
 
 
-
-
-
+prel_main(lek_30)
