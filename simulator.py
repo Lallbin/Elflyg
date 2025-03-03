@@ -7,9 +7,9 @@ import flygplansklasser
 plt.close()
 
 # Aircraft properties
-es_19 = flygplansklasser.Aircraft(8616, 37.7, 94, 92, 79, 78, 4, 0, -3, 0.7, 1100, 50000)
-es_30 = flygplansklasser.Aircraft(21000, 60, 97, 94, 80, 78, 4, 0, -3, 0.7, 1100, 100000)
-lek_30 = flygplansklasser.Aircraft(21000, 60, 97, 94, 90, 78, 4, 0, -3, 0.7, 1100, 100000)
+es_19 = flygplansklasser.Aircraft(8616, 37.7, 94, 92, 79, 78, 4, 0, -3, 0.7, 1100 )
+es_30 = flygplansklasser.Aircraft(21000, 60, 97, 94, 80, 78, 4, 0, -3, 0.7, 1100 )
+lek_30 = flygplansklasser.Aircraft(21000, 60, 97, 94, 90, 78, 4, 0, -3, 0.7, 1100)
 
 # Other values
 g = 9.82
@@ -149,6 +149,9 @@ def calculate_takeoff_acceleration(aircraft, F_max_, angle_of_attack_takeoff_, c
 #print(calculate_lift_force(es_30, calculate_angle_of_attack(es_30, 4, 1500, 94), 1500, 94))
 #print(calculate_drag_force(es_30, calculate_angle_of_attack(es_30, 4, 1500, 94), 1500, 94))
 
+def calculate_energy_density(aircraft,energy):
+    battery_weight = aircraft.weight - 16000
+    return energy/battery_weight
 
 def prel_main(aircraft, max_thrust):
     stage = 0 # definierar vilken del av flygfasen vi är i, stage = 0 = takeoff, stage = 1 = climb, stage = 2 = cruise, stage = 3 = descent
@@ -200,6 +203,8 @@ def prel_main(aircraft, max_thrust):
     #sedan plotta den listan och summera energi för att få den totala energin.
     check = True
     flying = True
+    descent_stall = False
+    time_stall = 0
     while flying:
         t += time_step
         
@@ -285,17 +290,30 @@ def prel_main(aircraft, max_thrust):
                 stage = 3
         
         elif stage == 3:     # Descent
-            climb_angle = aircraft.descent_angle
+            if altitude < 1500 and time_stall <= 30*60:
+                descent_stall = True
+                    
+            if descent_stall == True:
+                climb_angle = aircraft.cruise_angle
+                speed = aircraft.cruise_speed
+                speed_x = speed
+                speed_y = 0
+                    
+                angle_of_attack = calculate_angle_of_attack(aircraft, climb_angle, altitude, speed)
+                time_stall += time_step
+                if time_stall >= 30*60:
+                    descent_stall = False
+            elif descent_stall == False:
+                climb_angle = aircraft.descent_angle
             
-            speed = aircraft.descent_speed
-            speed_x = speed * cos(climb_angle)
-            speed_y = speed * sin(climb_angle)
+                speed = aircraft.descent_speed
+                speed_x = speed * cos(climb_angle)
+                speed_y = speed * sin(climb_angle)
             
-            position += speed_x * time_step
-            altitude += speed_y * time_step
+                position += speed_x * time_step
+                altitude += speed_y * time_step
             
-            angle_of_attack = calculate_angle_of_attack(aircraft, climb_angle, altitude, speed)
-        
+                angle_of_attack = calculate_angle_of_attack(aircraft, climb_angle, altitude, speed)       
 
         energy_consumtion = time_step*energy_for_flight_phase(aircraft, altitude, climb_angle, speed ,stage, max_thrust) / aircraft.propeller_efficiency
         
@@ -318,7 +336,7 @@ def prel_main(aircraft, max_thrust):
         
         energy_consumtion_list.append(energy_consumtion)
         
-        if position >= total_distance:
+        if stage > 1 and altitude <= 1:
             flying = False
         
         #if position >= 1100:
@@ -326,7 +344,7 @@ def prel_main(aircraft, max_thrust):
     
     print(sum(energy_consumtion_list) / 3600000) #Printa totala energikonsumptionen och gör om till kWh
     print(t/3600) #tiden i timmar
-    
+    print(("Energy density", calculate_energy_density(aircraft,sum(energy_consumtion_list)/3600000)))
     #Plotta flygturen med alla flygfaser
     
     plt.figure(figsize=(8, 5))
@@ -368,7 +386,7 @@ def prel_main(aircraft, max_thrust):
     plt.plot(position_list, altitude_list)
     plt.title("Altitude over distance")
     plt.show()
-    
+
     
     
 
@@ -381,4 +399,4 @@ def calculate_max_thrust(aircraft):
 
 #print(calculate_max_thrust(lek_30))
 #print(calculate_max_thrust(lek_30)/4)
-prel_main(lek_30, 142800)
+prel_main(es_30, 142800)
