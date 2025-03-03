@@ -1,0 +1,233 @@
+from scipy.optimize import fsolve
+import numpy as np
+import matplotlib.pyplot as plt
+
+class Propeller:
+    def __init__(self, efficiency_data, thrust_coeff_data, pitch_angles,start_advance_ratio,diameter):
+        self.efficiency_data=efficiency_data
+        self.thrust_coeff_data=thrust_coeff_data
+        self.pitch_angles=pitch_angles
+        self.start_advance_ratio=start_advance_ratio
+        self.diameter=diameter
+#verktyg: https://plotdigitizer.com/app        
+#efficiency_data        
+prop_1_eff_x_15 = [0.00536, 0.10184, 0.23476, 0.31623, 0.40842, 0.47274, 0.53277, 0.60781, 0.6657, 0.70214, 0.73216, 0.75145, 0.76646, 0.77718, 0.79648, 0.80934]
+prop_1_eff_y_15 = [-0.00212, 0.23718, 0.47012, 0.58024, 0.67129, 0.73271, 0.77082, 0.80682, 0.81529, 0.80259, 0.77294, 0.73271, 0.66706, 0.56965, 0.44047, 0.01271]
+prop_1_eff_x_20 = [0.00643, 0.06217, 0.13507, 0.20796, 0.31302, 0.42021, 0.53813, 0.64747, 0.73538, 0.82971, 0.91547, 0.96049, 0.97764, 1.00123, 1.02266, 1.03338, 1.03982]
+prop_1_eff_y_20 = [0.00212, 0.11012, 0.24353, 0.35576, 0.49765, 0.62047, 0.71576, 0.78353, 0.82165, 0.85129, 0.83435, 0.80047, 0.756, 0.612, 0.39812, 0.19482, 0.02965]
+prop_1_eff_x_25 = [0.00429, 0.25513, 0.34946, 0.44165, 0.55743, 0.66248, 0.75253, 0.91761, 1.0441, 1.11914, 1.18989, 1.23277, 1.24992, 1.28423]
+prop_1_eff_y_25 = [-0.00424, 0.29224, 0.41718, 0.54424, 0.65012, 0.73059, 0.77929, 0.84706, 0.86824, 0.85341, 0.792, 0.70306, 0.58235, 0.00847]
+prop_1_eff_x_30 = [0, 0.24012, 0.67963, 0.73966, 0.8147, 0.87902, 0.9755, 1.08484, 1.20276, 1.30352, 1.39357, 1.45789, 1.48147, 1.50291, 1.53292, 1.55008]
+prop_1_eff_y_30 = [-0.00212, 0.19906, 0.62894, 0.68188, 0.73906, 0.77294, 0.80894, 0.84494, 0.86824, 0.86824, 0.83859, 0.78141, 0.72, 0.63529, 0.36424, 0.00635]
+prop_1_eff_x_35 = [0.01072, 0.92404, 0.99265, 1.05697, 1.15345, 1.23063, 1.33354, 1.42787, 1.48361, 1.55865, 1.61868, 1.67871, 1.71302, 1.75804, 1.81164, 1.83093]
+prop_1_eff_y_35 = [0.00424, 0.69035, 0.73694, 0.76871, 0.79835, 0.82165, 0.83859, 0.84918, 0.85553, 0.85553, 0.83647, 0.792, 0.74541, 0.63318, 0.31341, 0.00847]
+prop_1_eff_x_40 = [-0.00214, 1.18989, 1.29066, 1.40214, 1.54793, 1.66156, 1.78806, 1.88668, 1.97458, 2.03247, 2.08606, 2.13538, 2.1611, 2.18683]
+prop_1_eff_y_40= [-0.00212, 0.70729, 0.756, 0.79835, 0.828, 0.84494, 0.84494, 0.81953, 0.76024, 0.69671, 0.57812, 0.396, 0.22659, 0.01059]
+prop_1_eff_x_45= [0.00429, 1.12343, 1.2928, 1.40858, 1.51363, 1.63155, 1.75804, 1.90597, 2.06463, 2.21041, 2.33691, 2.4441, 2.50842, 2.56631, 2.59204, 2.61991, 2.64349]
+prop_1_eff_y_45= [0, 0.54635, 0.62682, 0.69035, 0.73482, 0.77718, 0.80682, 0.83224, 0.83435, 0.80259, 0.73694, 0.65012, 0.56541, 0.44259, 0.34306, 0.19906, 0.01482]
+#prop thrust coefficient data
+prop_1_thrust_x_15= [-0.00422, 0.05913, 0.12459, 0.21961, 0.28296, 0.37164, 0.48145, 0.57225, 0.68627, 0.79608]
+prop_1_thrust_y_15= [0.15915, 0.15416, 0.14627, 0.13505, 0.12425, 0.10742, 0.08498, 0.06171, 0.0347, 0.00436]
+prop_1_thrust_x_20= [0.00211, 0.12036, 0.22805, 0.28296, 0.34208, 0.41388, 0.48989, 0.64615, 0.84465, 1.05158]
+prop_1_thrust_y_20= [0.18699, 0.18408, 0.1793, 0.17536, 0.16954, 0.15811, 0.14294, 0.10762, 0.05859, 0.00083]
+prop_1_thrust_x_25= [0, 0.13514, 0.22805, 0.3463, 0.48989, 0.55113, 0.63348, 0.91644, 1.18673, 1.28175]
+prop_1_thrust_y_25= [0.19572, 0.19302, 0.19177, 0.19073, 0.18512, 0.1793, 0.16351, 0.09807, 0.02701, 0.00083]
+prop_1_thrust_x_30= [0.00845, 0.42232, 0.50045, 0.58703, 0.64615, 0.69683, 0.73695, 0.77285, 0.82564, 0.8911, 1.03258, 1.21629, 1.41056, 1.5457]
+prop_1_thrust_y_30= [0.20777, 0.19883, 0.19655, 0.19613, 0.19468, 0.19219, 0.18949, 0.18429, 0.17702, 0.16435, 0.13422, 0.09412, 0.03968, 0.00145]
+prop_1_thrust_x_35= [0.00211, 0.13725, 0.31674, 0.454, 0.54691, 0.61659, 0.6905, 0.76652, 0.86365, 0.94389, 1.00302, 1.06425, 1.12971, 1.22896, 1.49502, 1.83922]
+prop_1_thrust_y_35= [0.21525, 0.21421, 0.2113, 0.20735, 0.2032, 0.19863, 0.1953, 0.19302, 0.19322, 0.19011, 0.18491, 0.17702, 0.16642, 0.14772, 0.08685, 0.00104]
+prop_1_thrust_x_40= [0, 0.16471, 0.38009, 0.54902, 0.6546, 0.74118, 0.84676, 0.93544, 1.00935, 1.09593, 1.17406, 1.23318, 1.31976, 1.41267, 1.50347, 1.60483, 1.78643, 2.04404, 2.2]
+prop_1_thrust_y_40= [0.21857, 0.21816, 0.21691, 0.21504, 0.21234, 0.2086, 0.2032, 0.19863, 0.19593, 0.19551, 0.19468, 0.19239, 0.18533, 0.17349, 0.15853, 0.13609, 0.09537, 0.0374,0]
+prop_1_thrust_x_45= [0.00211, 0.1098, 0.28084, 0.49201, 0.65249, 0.79397, 0.93756, 1.04103, 1.16772, 1.27541, 1.381, 1.46968, 1.56682, 1.68718, 1.80543, 2.00603, 2.62896]
+prop_1_thrust_y_45= [0.22979, 0.23, 0.22917, 0.22543, 0.22023, 0.21421, 0.20631, 0.20029, 0.19551, 0.19364, 0.19302, 0.19115, 0.18741, 0.1766, 0.15915, 0.12466, 0.00125]
+
+
+#data för prop1 är hämtad från "naca-report-640" och gäller propellern "Clark Y 4 section 4 blade"
+prop1=Propeller([[prop_1_eff_x_15,prop_1_eff_y_15],[prop_1_eff_x_20,prop_1_eff_y_20],[prop_1_eff_x_25,prop_1_eff_y_25],
+                       [prop_1_eff_x_30,prop_1_eff_y_30],[prop_1_eff_x_35,prop_1_eff_y_35],[prop_1_eff_x_40,prop_1_eff_y_40],[prop_1_eff_x_45,prop_1_eff_y_45]],  
+        [[prop_1_thrust_x_15,prop_1_thrust_y_15],[prop_1_thrust_x_20,prop_1_thrust_y_20],[prop_1_thrust_x_25,prop_1_thrust_y_25],[prop_1_thrust_x_30,prop_1_thrust_y_30],
+         [prop_1_thrust_x_35,prop_1_thrust_y_35],[prop_1_thrust_x_40,prop_1_thrust_y_40],[prop_1_thrust_x_45,prop_1_thrust_y_45]],
+        [15,20,25,30,35,40,45], 
+        1.5,
+        4
+           )
+
+
+def calc_prop_efficiency(propeller, aircraft_speed, advance_ratio, current_pitch_angle): #Räknar ut bästa pitchvinkel,propellerhastighet samt den verkningsgrad som erhålles
+      
+    
+    
+    pitch_angle_step_size= (propeller.pitch_angles[1] - propeller.pitch_angles[0] )
+    index=int( (current_pitch_angle-propeller.pitch_angles[0])/pitch_angle_step_size )
+    
+    
+    efficiency= np.interp(advance_ratio, propeller.efficiency_data[index][0],propeller.efficiency_data[index][1])  
+    prop_rps= aircraft_speed/ (propeller.diameter*advance_ratio) # prop_rps är propellerns varvtal per sekund     
+    
+    return prop_rps, efficiency
+
+def calc_thrust_coefficient(propeller, advance_ratio, current_pitch_angle):  # Räknar ut thrust_coefficient givet advance ratio och tillhörande pitch-vinkel
+    
+    pitch_angles= propeller.pitch_angles
+    pitch_angle_step_size= (propeller.pitch_angles[1] - propeller.pitch_angles[0] )
+    index=int( (current_pitch_angle-propeller.pitch_angles[0])/pitch_angle_step_size )
+    
+
+    thrust_coefficient= np.interp(advance_ratio, propeller.thrust_coeff_data[index][0], propeller.thrust_coeff_data[index][1])
+    
+    return thrust_coefficient
+
+def calc_prop_thrust( propeller, thrust_coefficient, prop_rps, rho):       #Räknar ut den thrust som erhålles i newton
+    thrust_in_lb=thrust_coefficient*(prop_rps**2)*rho*propeller.diameter**4
+    thrust_in_N=thrust_in_lb*4.44822  #skalfaktorn kommer från att thrust koefficienten ger thrust i lb
+    return thrust_in_N
+
+def calc_motor_electric_power_req(thrust, aircraft_speed, motor_efficiency, prop_efficiency):  #Räknar den elektriska effekt motorn måste leverera
+    motor_electric_power =  aircraft_speed*thrust/ (motor_efficiency*prop_efficiency)
+    return motor_electric_power
+     
+def calc_motor_electric_torque(electric_power, prop_rps ): #Räknar ut det vridmoment motorn måste klara av att leverera
+    
+    omega= 2*3.1415*prop_rps
+    
+    motor_torque= electric_power/omega
+    
+    return motor_torque
+    
+def find_advance_ratio_for_current_pitch_angle(propeller, F_required, aircraft_speed, current_pitch_angle, rho ):
+    
+    
+    
+    def thrust_diff_func(advance_ratio):  ## Denna funktion används i sökalgorimen nedan för att räkna ut differensen mellan sökt och nuvarande thrust
+        
+        
+        prop_rps, prop_efficiency = calc_prop_efficiency(propeller, aircraft_speed, advance_ratio, current_pitch_angle) 
+        thrust_coefficient=calc_thrust_coefficient(propeller,advance_ratio, current_pitch_angle)
+        prop_thrust= calc_prop_thrust(propeller, thrust_coefficient, prop_rps, rho) 
+
+        return prop_thrust-F_required , thrust_coefficient
+     
+          
+    ### Koden nedan är en sökalgoritm som stegar sig fram till en advance ratio för den givna pitch_anglen till dess att thrust-kravet uppfylls___________________________________________
+    
+    threshold=50
+    count=0
+    thrust_diff=threshold*2
+
+     
+    advance_ratio=propeller.start_advance_ratio
+    search_step=0.05
+    current_iteration_status=-1
+    last_iteration_status=-1
+    
+    
+    while abs(thrust_diff)>threshold:
+        
+      thrust_diff, thrust_coefficient =thrust_diff_func(advance_ratio) 
+     
+      if abs(thrust_diff)>threshold: 
+        if thrust_diff>0:
+            advance_ratio= advance_ratio+search_step  #Istället för att addera 0.01 måste det göras proportionerligt mot rotationshastigheten
+            last_iteration_status=current_iteration_status
+            current_iteration_status=1
+        elif thrust_diff<0:
+            advance_ratio=advance_ratio - search_step
+            last_iteration_status=current_iteration_status
+            current_iteration_status=0
+            
+      if current_iteration_status !=last_iteration_status :#Om den resulterande thrusten hoppar runt, halvera söksteget
+           search_step=search_step/2   
+           
+      count+=1
+    
+    ### Slut på sökalgoritm ____________________________________________________________________________________________________       
+
+    return advance_ratio,thrust_coefficient
+    
+def calc_motor_operating_point(propeller, F_required, aircraft_speed, rho, motor_efficiency): # Moderfunktion som samlar alla andra funktioner för att beräkna en arbetspunkt för motorn.
+    
+    #1: Nedan loop finner en arbetspunkt för propellern för varje pitch-angle, som uppfyller thrustkravet. Enbart den arbetspunkt med bäst verkningsgrad sparas.
+    
+    highest_efficiency=0
+    
+    for current_pitch_angle in propeller.pitch_angles: 
+        
+        advance_ratio, thrust_coefficient = find_advance_ratio_for_current_pitch_angle(propeller, F_required, aircraft_speed, current_pitch_angle, rho ) # Finn J som uppfyllter F_required
+
+        prop_rps, prop_efficiency = calc_prop_efficiency(propeller, aircraft_speed, advance_ratio,current_pitch_angle)  
+
+        
+        
+        if prop_efficiency>highest_efficiency:           #spara enbart arbetspunkten om den har högst verkningsgrad hittills. 
+            highest_efficiency=prop_efficiency
+            saved_prop_efficiency=prop_efficiency
+            saved_prop_rps=prop_rps
+            saved_pitch_angle=current_pitch_angle
+            saved_advance_ratio=advance_ratio
+        
+    
+    # 4: Nu kan vi beräkna motorns elektriska effekt _________________
+    
+    motor_electric_power = calc_motor_electric_power_req(F_required, aircraft_speed, motor_efficiency, saved_prop_efficiency) 
+    
+    # 5: Slutligen kan vi beräkna motorns vridmoment ________________
+    
+    motor_torque= calc_motor_electric_torque(motor_electric_power,saved_prop_rps)
+    
+    
+    return motor_electric_power, motor_torque, saved_prop_rps, saved_prop_efficiency, saved_advance_ratio, saved_pitch_angle
+       
+    
+    
+#print(calc_motor_operating_point(6000,78,1.2,0.95)) 
+
+
+aircraft_speed=97
+
+F_required=20000
+rho=1.2
+motor_efficiency=0.95
+
+#print(calc_prop_efficiency(exampleprop, aircraft_speed, advance_ratio))   
+#print(calc_thrust_coefficient(exampleprop, advance_ratio, current_pitch_angle) )
+#print(calc_prop_thrust(exampleprop,0.1,10,1.2))
+print(calc_motor_operating_point(prop1, F_required, aircraft_speed, rho, motor_efficiency))
+
+# 97 m/s 
+# 12 kN
+
+
+    
+def plot(propeller):    
+  for data in propeller.efficiency_data:
+      x=np.array(data[0])
+      y=np.array(data[1])
+      plt.plot(x,y)
+    
+  plt.show()
+    
+
+
+
+
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+
+
+
+
+
+
+
