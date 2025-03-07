@@ -7,9 +7,9 @@ import flygplansklasser
 plt.close()
 
 # Aircraft properties
-es_19 = flygplansklasser.Aircraft(8616, 37.7, 94, 92, 79, 78, 4, 0, -3, 0.7, 1100 )
-es_30 = flygplansklasser.Aircraft(21000, 60, 97, 94, 80, 78, 4, 0, -3, 0.7, 1100 )
-lek_30 = flygplansklasser.Aircraft(21000, 60, 97, 94, 90, 78, 4, 0, -3, 0.7, 1100)
+es_19 = flygplansklasser.Aircraft(8616, 37.7, 94, 92, 79, 78, 4, 0, -3, 0.7, 1100)
+es_30 = flygplansklasser.Aircraft(21000, 60, 97, 94, 80, 78, 4, 0, -3, 0.7, 1100)
+lek_30 = flygplansklasser.Aircraft(18000, 70, 97, 94, 90, 57, 4, 0, -3, 0.7, 1100)
 
 # Other values
 g = 9.82
@@ -53,58 +53,60 @@ def calculate_air_density(h):
     
     return rho
 
-def calculate_drag_coefficient(a):
-    C_d = 0.0005 * a ** 2 - 0.0008 * a + 0.0284
+def calculate_drag_coefficient(angle_of_attack_, flaps_):
+    C_d = 0.0284 + 0.04 * (calculate_lift_coefficient(angle_of_attack_, flaps_))**2
     
     return C_d
 
 # Drag coefficient, air density, reference area, air speed
-def calculate_drag_force(aircraft, a, alt, v): 
-    D = calculate_drag_coefficient(a) * 0.5 * calculate_air_density(alt) * aircraft.ref_area *  v ** 2
+def calculate_drag_force(aircraft, aoa_, alt_, speed_, flaps_): 
+    D = calculate_drag_coefficient(aoa_, flaps_) * 0.5 * calculate_air_density(alt_) * aircraft.ref_area *  speed_ ** 2
     
     return D
 
-def calculate_lift_coefficient(a):
-    C_l = 0.102 * a + 0.102
+def calculate_lift_coefficient(angle_of_attack_, flaps_):
+
+    C_l = 0.23 + 0.1 * angle_of_attack_ + flaps_ * 0.025
     
     return C_l
 
 
-def calculate_lift_force(aircraft, a, alt, v):
-    L = calculate_lift_coefficient(a) * 0.5 * calculate_air_density(alt) * aircraft.ref_area *  v ** 2
+def calculate_lift_force(aircraft, aoa_, alt_, speed_, flaps_):
+    L = calculate_lift_coefficient(aoa_, flaps_) * 0.5 * calculate_air_density(alt_) * aircraft.ref_area *  speed_ ** 2
     
     return L
 
 #Beräknar vilken angle of attack som krävs för att hålla konstant fart vid en specifik tidpunkt. 
-def calculate_angle_of_attack(aircraft, climb_angle_, altitude_, speed_):
+def calculate_angle_of_attack(aircraft, climb_angle_, altitude_, speed_, flaps_):
     
     def func(a):
-        L = calculate_lift_force(aircraft, a, altitude_, speed_)
-        D = calculate_drag_force(aircraft, a, altitude_, speed_)
+        L = calculate_lift_force(aircraft, a, altitude_, speed_, flaps_)
+        D = calculate_drag_force(aircraft, a, altitude_, speed_, flaps_)
         
         return L * cos(climb_angle_) - D * sin(climb_angle_) + (L * sin(climb_angle_) + D * cos(climb_angle_)) * sin(a + climb_angle_) / cos(a + climb_angle_) - aircraft.weight * g
     
     return fsolve(func, 5)[0]
 
 #Beräknar thrust vid  en tidpunkt som krävs för att hålla konstant hastighet
-def calculate_thrust(aircraft, climb_angle_, altitude_, speed_):
-    a = calculate_angle_of_attack(aircraft, climb_angle_, altitude_, speed_)
-    L = calculate_lift_force(aircraft, a, altitude_, speed_)
-    D = calculate_drag_force(aircraft, a, altitude_, speed_)
+def calculate_thrust(aircraft, climb_angle_, altitude_, speed_, flaps_):
+    a = calculate_angle_of_attack(aircraft, climb_angle_, altitude_, speed_, flaps_)
+    L = calculate_lift_force(aircraft, a, altitude_, speed_, flaps_)
+    D = calculate_drag_force(aircraft, a, altitude_, speed_, flaps_)
     
     F = (L * sin(climb_angle_) + D * cos(climb_angle_)) / cos(a + climb_angle_)
     
     if F < 0:
+        print(F, L, D, a, climb_angle_)
         raise ValueError("Calculated thrust is negative. Check input values.")
     
     return F
 #Beräkna hur mycket energi flygplanet behöver för en viss tid. I loopen kör detta med ett lågt time step för att få alla steg i simulationen.
-def energy_for_flight_phase(aircraft,altitude,climb_angle,speed,stage, max_thrust_):
+def energy_for_flight_phase(aircraft,altitude,climb_angle,speed,stage, max_thrust_, flaps_):
     if stage < 1:
         F = max_thrust_
         d = speed*time_step
     else: 
-        F = calculate_thrust(aircraft, climb_angle, altitude, speed)
+        F = calculate_thrust(aircraft, climb_angle, altitude, speed, flaps_)
         d = speed*time_step
     return F*d
 
@@ -125,15 +127,15 @@ def calculate_takeoff_thrust(aircraft,a, altitude_, speed_):
     else: 
         return aircraft.weight*calculate_takeoff_acc(aircraft) + calculate_drag_force(aircraft,a,altitude_,speed_)
 
-def calculate_runway_acceleration(aircraft, F_max_, altitude_, speed_):
-    D = calculate_drag_force(aircraft, 0, altitude_, speed_)
+def calculate_runway_acceleration(aircraft, F_max_, altitude_, speed_, flaps_):
+    D = calculate_drag_force(aircraft, 0, altitude_, speed_, flaps_)
     acceleration_x_ = (F_max_ - D) / aircraft.weight
     
     return acceleration_x_
 
-def calculate_takeoff_acceleration(aircraft, F_max_, angle_of_attack_takeoff_, climb_angle_, altitude_, speed_):
-    L = calculate_lift_force(aircraft, angle_of_attack_takeoff_, altitude_, speed_)
-    D = calculate_drag_force(aircraft, angle_of_attack_takeoff_, altitude_, speed_)
+def calculate_takeoff_acceleration(aircraft, F_max_, angle_of_attack_takeoff_, climb_angle_, altitude_, speed_, flaps_):
+    L = calculate_lift_force(aircraft, angle_of_attack_takeoff_, altitude_, speed_, flaps_)
+    D = calculate_drag_force(aircraft, angle_of_attack_takeoff_, altitude_, speed_, flaps_)
     
     acceleration_x_ = (F_max_ * cos(angle_of_attack_takeoff_ + climb_angle_) - L * sin(climb_angle_) - D * cos(climb_angle_)) / aircraft.weight
     acceleration_y_ = (F_max_ * sin(angle_of_attack_takeoff_ + climb_angle_) + L * cos(climb_angle_) - D * sin(climb_angle_) - aircraft.weight * g) / aircraft.weight
@@ -158,7 +160,7 @@ def prel_main(aircraft, max_thrust):
     
     #Värden som beskriver flygplanets position och rörelse 
     t = 0
-    time_step = 1
+    time_step = 0.1
     
     position = 0
     altitude = 0
@@ -175,6 +177,8 @@ def prel_main(aircraft, max_thrust):
     climb_angle = 0
     
     energy_consumtion = 0
+    
+    flaps = 0 # 0, 10, 20 or 30 (degrees)
 
     #Listor med alla värden från hela flygturen
     t_list = []
@@ -195,8 +199,10 @@ def prel_main(aircraft, max_thrust):
     
     energy_consumtion_list = []
     
+    flaps_list = []
     
-    max_thrust = max_thrust / 2
+    
+    #max_thrust = max_thrust / 2
     
     
     #Loopen vandrar i tid och kollar hur en flygfas ser ut genom att lägga varje punkt i en lista och 
@@ -208,17 +214,17 @@ def prel_main(aircraft, max_thrust):
     while flying:
         t += time_step
         
-        
-        
         #if speed > 49 and check:
-        #    max_thrust = max_thrust * 0.75
+        #    max_thrust = max_thrust * 0.5
         #    check = False
         
         if stage == 0:
             #current_thrust = calculate_takeoff_thrust(aircraft,0, climb_angle, altitude, ground_speed)
             #ground_speed += current_thrust*time_step*cos(climb_angle)/aircraft.weight
             
-            acceleration_x = calculate_runway_acceleration(aircraft, max_thrust, altitude, speed)
+            flaps = 20
+            
+            acceleration_x = calculate_runway_acceleration(aircraft, max_thrust, altitude, speed, flaps)
             acceleration = acceleration_x
             
             speed_x += acceleration_x * time_step
@@ -237,11 +243,12 @@ def prel_main(aircraft, max_thrust):
             #ground_speed += current_thrust*time_step*cos(climb_angle)/aircraft.weight
             #"pre climb" equations
             
-            angle_of_attack = 10 - climb_angle
-            if angle_of_attack < aircraft.climb_angle:
-                angle_of_attack = aircraft.climb_angle
+            if speed > aircraft.takeoff_speed * 1.3:
+                flaps = 10
             
-            acceleration_x, acceleration_y, acceleration = calculate_takeoff_acceleration(aircraft, max_thrust, angle_of_attack, climb_angle, altitude, speed)
+            angle_of_attack = 8 - climb_angle
+            
+            acceleration_x, acceleration_y, acceleration = calculate_takeoff_acceleration(aircraft, max_thrust, angle_of_attack, climb_angle, altitude, speed, flaps)
             
             speed_x += acceleration_x * time_step
             speed_y += acceleration_y * time_step
@@ -257,6 +264,8 @@ def prel_main(aircraft, max_thrust):
                 acceleration_x = 0
                 acceleration_y = 0
                 acceleration = 0
+                flaps = 0
+                
                 
         
         elif stage == 1:      # Climb
@@ -269,7 +278,7 @@ def prel_main(aircraft, max_thrust):
             position += speed_x * time_step
             altitude += speed_y * time_step
             
-            angle_of_attack = calculate_angle_of_attack(aircraft, climb_angle, altitude, speed)
+            angle_of_attack = calculate_angle_of_attack(aircraft, climb_angle, altitude, speed, flaps)
             
             if altitude >= 3000: #Om vi är över vår cruising altitude går vi över till cruise
                 stage = 2
@@ -284,7 +293,7 @@ def prel_main(aircraft, max_thrust):
             position += speed_x * time_step
             altitude += speed_y * time_step
             
-            angle_of_attack = calculate_angle_of_attack(aircraft, climb_angle, altitude, speed)
+            angle_of_attack = calculate_angle_of_attack(aircraft, climb_angle, altitude, speed, flaps)
             
             if total_distance + descent_distance_calc(aircraft, 3000) < position: #om vi har nått till det området när vi behöver stiga ner så går vi över till descent
                 stage = 3
@@ -299,7 +308,7 @@ def prel_main(aircraft, max_thrust):
                 speed_x = speed
                 speed_y = 0
                     
-                angle_of_attack = calculate_angle_of_attack(aircraft, climb_angle, altitude, speed)
+                angle_of_attack = calculate_angle_of_attack(aircraft, climb_angle, altitude, speed, flaps)
                 time_stall += time_step
                 if time_stall >= 30*60:
                     descent_stall = False
@@ -313,9 +322,9 @@ def prel_main(aircraft, max_thrust):
                 position += speed_x * time_step
                 altitude += speed_y * time_step
             
-                angle_of_attack = calculate_angle_of_attack(aircraft, climb_angle, altitude, speed)       
+                angle_of_attack = calculate_angle_of_attack(aircraft, climb_angle, altitude, speed, flaps)       
 
-        energy_consumtion = time_step*energy_for_flight_phase(aircraft, altitude, climb_angle, speed ,stage, max_thrust) / aircraft.propeller_efficiency
+        energy_consumtion = time_step*energy_for_flight_phase(aircraft, altitude, climb_angle, speed ,stage, max_thrust, flaps) / aircraft.propeller_efficiency
         
         #lägg till alla värden i våra listor
         t_list.append(t)
@@ -336,16 +345,25 @@ def prel_main(aircraft, max_thrust):
         
         energy_consumtion_list.append(energy_consumtion)
         
+        flaps_list.append(flaps)
+        
         if stage > 1 and altitude <= 1:
             flying = False
         
         #if position >= 1100:
+        #    print(speed)
+        #    print(acceleration_x)
         #    return altitude
     
     print(sum(energy_consumtion_list) / 3600000) #Printa totala energikonsumptionen och gör om till kWh
     print(t/3600) #tiden i timmar
     print(("Energy density", calculate_energy_density(aircraft,sum(energy_consumtion_list)/3600000)))
     #Plotta flygturen med alla flygfaser
+    
+    plt.figure(figsize=(8, 5))
+    plt.plot(t_list, flaps_list)
+    plt.title("Flaps over time")
+    plt.show()
     
     plt.figure(figsize=(8, 5))
     plt.plot(t_list, energy_consumtion_list)
@@ -355,21 +373,22 @@ def prel_main(aircraft, max_thrust):
     plt.figure(figsize=(8, 5))
     plt.plot(t_list, altitude_list)
     plt.title("Altitude over time")
-    plt.xlabel("Distance (m)")
-    plt.ylabel("Altitude (m)")
     plt.show()
     
     #Plotta an figur på hur våra angle of attacks ser ut. 
     plt.figure(figsize=(8, 5))
     plt.plot(t_list, angle_of_attack_list)
     plt.title("AOA over time")
-    plt.xlabel("Distance (m)")
-    plt.ylabel("AOA (degrees)")
     plt.show()
     
     plt.figure(figsize=(8, 5))
     plt.plot(t_list, speed_x_list)
     plt.title("Ground speed over time")
+    plt.show()
+    
+    plt.figure(figsize=(8, 5))
+    plt.plot(t_list, speed_list)
+    plt.title("Speed over time")
     plt.show()
     
     plt.figure(figsize=(8, 5))
@@ -394,9 +413,10 @@ def calculate_max_thrust(aircraft):
     def func(F):
         return prel_main(aircraft, F) - 15
     
-    return fsolve(func, 140000)[0]
+    return fsolve(func, 63500)[0]
     
 
 #print(calculate_max_thrust(lek_30))
-#print(calculate_max_thrust(lek_30)/4)
-prel_main(es_30, 142800)
+
+prel_main(lek_30, 52000)
+#prel_main(lek_30, 142800)

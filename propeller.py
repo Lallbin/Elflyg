@@ -85,7 +85,7 @@ def calc_prop_thrust( propeller, thrust_coefficient, prop_rps, rho):       #Räk
 def calc_motor_electric_power_req(thrust, aircraft_speed, motor_efficiency, prop_efficiency):  #Räknar den elektriska effekt motorn måste leverera
     motor_electric_power =  aircraft_speed*thrust/ (motor_efficiency*prop_efficiency)
     return motor_electric_power
-     
+    
 def calc_motor_electric_torque(electric_power, prop_rps ): #Räknar ut det vridmoment motorn måste klara av att leverera
     
     omega= 2*3.1415*prop_rps
