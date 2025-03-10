@@ -9,24 +9,12 @@ plt.close()
 # Aircraft properties
 es_19 = flygplansklasser.Aircraft(8616, 37.7, 94, 92, 79, 78, 4, 0, -3, 0.7, 1100)
 es_30 = flygplansklasser.Aircraft(21000, 60, 97, 94, 80, 78, 4, 0, -3, 0.7, 1100)
-lek_30 = flygplansklasser.Aircraft(18000, 70, 97, 94, 90, 57, 4, 0, -3, 0.7, 1100)
+lek_30 = flygplansklasser.Aircraft(25000, 67, 97, 94, 90, 57, 4, 0, -3, 0.8, 1100)
 
 # Other values
 g = 9.82
 
-total_time = 60 * 60    # Seconds
-time_step = 1         # Seconds per time step
-time_points = np.arange(0, total_time, time_step)
-
 total_distance = 400 * 1000
-
-a_lift_coefficient = 0.11
-b_lift_coefficient = 0.25
-a_drag_coefficient = 0.0005
-b_drag_coefficient = 0.0008
-c_drag_coefficient = 0.0284
-
-
 
 
 # Gör så at cos/sin/tan funkar som vi vill att de ska göra
@@ -54,7 +42,7 @@ def calculate_air_density(h):
     return rho
 
 def calculate_drag_coefficient(angle_of_attack_, flaps_):
-    C_d = 0.0284 + 0.04 * (calculate_lift_coefficient(angle_of_attack_, flaps_))**2
+    C_d = 0.025 + 0.038 * (calculate_lift_coefficient(angle_of_attack_, flaps_))**2
     
     return C_d
 
@@ -101,13 +89,13 @@ def calculate_thrust(aircraft, climb_angle_, altitude_, speed_, flaps_):
     
     return F
 #Beräkna hur mycket energi flygplanet behöver för en viss tid. I loopen kör detta med ett lågt time step för att få alla steg i simulationen.
-def energy_for_flight_phase(aircraft,altitude,climb_angle,speed,stage, max_thrust_, flaps_):
+def energy_for_flight_phase(aircraft,altitude,climb_angle,speed,stage, max_thrust_, flaps_, time_step_):
     if stage < 1:
         F = max_thrust_
-        d = speed*time_step
+        d = speed*time_step_
     else: 
         F = calculate_thrust(aircraft, climb_angle, altitude, speed, flaps_)
-        d = speed*time_step
+        d = speed*time_step_
     return F*d
 
 #Beräkna hur lång distans vi behöver för att komma ner till marken
@@ -160,7 +148,7 @@ def prel_main(aircraft, max_thrust):
     
     #Värden som beskriver flygplanets position och rörelse 
     t = 0
-    time_step = 0.1
+    time_step = 1
     
     position = 0
     altitude = 0
@@ -282,6 +270,7 @@ def prel_main(aircraft, max_thrust):
             
             if altitude >= 3000: #Om vi är över vår cruising altitude går vi över till cruise
                 stage = 2
+                print(calculate_lift_coefficient(angle_of_attack, flaps), calculate_drag_coefficient(angle_of_attack, flaps), calculate_lift_coefficient(angle_of_attack, flaps)/calculate_drag_coefficient(angle_of_attack, flaps))
         
         elif stage == 2:     # Cruise
             climb_angle = aircraft.cruise_angle
@@ -324,7 +313,7 @@ def prel_main(aircraft, max_thrust):
             
                 angle_of_attack = calculate_angle_of_attack(aircraft, climb_angle, altitude, speed, flaps)       
 
-        energy_consumtion = time_step*energy_for_flight_phase(aircraft, altitude, climb_angle, speed ,stage, max_thrust, flaps) / aircraft.propeller_efficiency
+        energy_consumtion = time_step*energy_for_flight_phase(aircraft, altitude, climb_angle, speed ,stage, max_thrust, flaps, time_step) / aircraft.propeller_efficiency
         
         #lägg till alla värden i våra listor
         t_list.append(t)
@@ -359,7 +348,7 @@ def prel_main(aircraft, max_thrust):
     print(t/3600) #tiden i timmar
     print(("Energy density", calculate_energy_density(aircraft,sum(energy_consumtion_list)/3600000)))
     #Plotta flygturen med alla flygfaser
-    
+    """
     plt.figure(figsize=(8, 5))
     plt.plot(t_list, flaps_list)
     plt.title("Flaps over time")
@@ -405,7 +394,7 @@ def prel_main(aircraft, max_thrust):
     plt.plot(position_list, altitude_list)
     plt.title("Altitude over distance")
     plt.show()
-
+    """
     
     
 
@@ -418,5 +407,5 @@ def calculate_max_thrust(aircraft):
 
 #print(calculate_max_thrust(lek_30))
 
-prel_main(lek_30, 52000)
+prel_main(lek_30, 82000) # 52000
 #prel_main(lek_30, 142800)
