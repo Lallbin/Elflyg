@@ -167,6 +167,8 @@ def prel_main(aircraft, max_thrust):
     energy_consumtion = 0
     
     flaps = 0 # 0, 10, 20 or 30 (degrees)
+    
+    windspeed = -10
 
     #Listor med alla värden från hela flygturen
     t_list = []
@@ -263,7 +265,7 @@ def prel_main(aircraft, max_thrust):
             speed_x = speed * cos(climb_angle)
             speed_y = speed * sin(climb_angle)
             
-            position += speed_x * time_step
+            position += (speed_x + windspeed) * time_step
             altitude += speed_y * time_step
             
             angle_of_attack = calculate_angle_of_attack(aircraft, climb_angle, altitude, speed, flaps)
@@ -278,7 +280,7 @@ def prel_main(aircraft, max_thrust):
             speed_x = speed
             speed_y = 0
             
-            position += speed_x * time_step
+            position += (speed_x + windspeed) * time_step
             altitude += speed_y * time_step
             
             angle_of_attack = calculate_angle_of_attack(aircraft, climb_angle, altitude, speed, flaps)
@@ -308,7 +310,7 @@ def prel_main(aircraft, max_thrust):
                 speed_x = speed * cos(climb_angle)
                 speed_y = speed * sin(climb_angle)
             
-                position += speed_x * time_step
+                position += (speed_x + windspeed) * time_step
                 altitude += speed_y * time_step
             
                 angle_of_attack = calculate_angle_of_attack(aircraft, climb_angle, altitude, speed, flaps)       
@@ -364,13 +366,13 @@ def prel_main(aircraft, max_thrust):
     plt.plot(t_list, altitude_list)
     plt.title("Altitude over time")
     plt.show()
-    
+    """
     #Plotta an figur på hur våra angle of attacks ser ut. 
     plt.figure(figsize=(8, 5))
     plt.plot(t_list, angle_of_attack_list)
     plt.title("AOA over time")
     plt.show()
-    
+    """
     plt.figure(figsize=(8, 5))
     plt.plot(t_list, speed_x_list)
     plt.title("Ground speed over time")
@@ -390,11 +392,12 @@ def prel_main(aircraft, max_thrust):
     plt.plot(position_list, climb_angle_list)
     plt.title("Climb angle over distance")
     plt.show()
-    
+    """
     plt.figure(figsize=(8, 5))
     plt.plot(position_list, altitude_list)
     plt.title("Altitude over distance")
     plt.show()
+    """
     """
     
     
