@@ -9,7 +9,7 @@ plt.close()
 # Aircraft properties
 es_19 = flygplansklasser.Aircraft(8616, 37.7, 94, 92, 79, 78, 4, 0, -3, 0.7, 1100)
 es_30 = flygplansklasser.Aircraft(21000, 60, 97, 94, 80, 78, 4, 0, -3, 0.7, 1100)
-lek_30 = flygplansklasser.Aircraft(25000, 67, 97, 94, 90, 57, 4, 0, -3, 0.8, 1100)
+lek_30 = flygplansklasser.Aircraft(23500, 77, 97, 94, 90, 57, 4, 0, -3, 0.7, 1100)
 
 # Other values
 g = 9.82
@@ -268,9 +268,8 @@ def prel_main(aircraft, max_thrust):
             
             angle_of_attack = calculate_angle_of_attack(aircraft, climb_angle, altitude, speed, flaps)
             
-            if altitude >= 3000: #Om vi är över vår cruising altitude går vi över till cruise
+            if altitude >= 3500: #Om vi är över vår cruising altitude går vi över till cruise
                 stage = 2
-                print(calculate_lift_coefficient(angle_of_attack, flaps), calculate_drag_coefficient(angle_of_attack, flaps), calculate_lift_coefficient(angle_of_attack, flaps)/calculate_drag_coefficient(angle_of_attack, flaps))
         
         elif stage == 2:     # Cruise
             climb_angle = aircraft.cruise_angle
@@ -284,8 +283,9 @@ def prel_main(aircraft, max_thrust):
             
             angle_of_attack = calculate_angle_of_attack(aircraft, climb_angle, altitude, speed, flaps)
             
-            if total_distance + descent_distance_calc(aircraft, 3000) < position: #om vi har nått till det området när vi behöver stiga ner så går vi över till descent
+            if total_distance + descent_distance_calc(aircraft, 3500) < position: #om vi har nått till det området när vi behöver stiga ner så går vi över till descent
                 stage = 3
+                print(calculate_lift_coefficient(angle_of_attack, flaps), calculate_drag_coefficient(angle_of_attack, flaps), calculate_lift_coefficient(angle_of_attack, flaps)/calculate_drag_coefficient(angle_of_attack, flaps), angle_of_attack)
         
         elif stage == 3:     # Descent
             if altitude < 1500 and time_stall <= 30*60:
@@ -347,6 +347,7 @@ def prel_main(aircraft, max_thrust):
     print(sum(energy_consumtion_list) / 3600000) #Printa totala energikonsumptionen och gör om till kWh
     print(t/3600) #tiden i timmar
     print(("Energy density", calculate_energy_density(aircraft,sum(energy_consumtion_list)/3600000)))
+    
     #Plotta flygturen med alla flygfaser
     """
     plt.figure(figsize=(8, 5))
