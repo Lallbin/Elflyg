@@ -9,7 +9,7 @@ plt.close()
 # Aircraft properties
 es_19 = flygplansklasser.Aircraft(8616, 37.7, 94, 92, 79, 78, 4, 0, -3, 0.7, 1100)
 es_30 = flygplansklasser.Aircraft(21000, 60, 97, 94, 80, 78, 4, 0, -3, 0.7, 1100)
-lek_30 = flygplansklasser.Aircraft(23500, 65, 97, 94, 90, 57, 4, 0, -3, 0.8, 1100)
+lek_30 = flygplansklasser.Aircraft(25400, 65, 97, 94, 90, 57, 4, 0, -3, 0.8, 1100)
 
 # Other values
 g = 9.82
@@ -140,7 +140,7 @@ def calculate_takeoff_acceleration(aircraft, F_max_, angle_of_attack_takeoff_, c
 #print(calculate_drag_force(es_30, calculate_angle_of_attack(es_30, 4, 1500, 94), 1500, 94))
 
 def calculate_energy_density(aircraft,energy):
-    battery_weight = aircraft.weight - 11500
+    battery_weight = aircraft.weight - 13400
     return energy/battery_weight
 
 def prel_main(aircraft, max_thrust):
@@ -314,8 +314,8 @@ def prel_main(aircraft, max_thrust):
                 altitude += speed_y * time_step
             
                 angle_of_attack = calculate_angle_of_attack(aircraft, climb_angle, altitude, speed, flaps)       
-
-        energy_consumtion = time_step*energy_for_flight_phase(aircraft, altitude, climb_angle, speed ,stage, max_thrust, flaps, time_step) / aircraft.propeller_efficiency
+        #energy som krävs plus stödsystems effekt på 30 kW
+        energy_consumtion = 30000 + time_step*energy_for_flight_phase(aircraft, altitude, climb_angle, speed ,stage, max_thrust, flaps, time_step) / aircraft.propeller_efficiency
         
         #lägg till alla värden i våra listor
         t_list.append(t)
