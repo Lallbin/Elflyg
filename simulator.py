@@ -294,8 +294,8 @@ def prel_main(aircraft, max_thrust):
                 descent_stall = True
                     
             if descent_stall == True:
-                climb_angle = aircraft.cruise_angle
-                speed = aircraft.cruise_speed
+                climb_angle = aircraft.climb_angle
+                speed = aircraft.climb_speed
                 speed_x = speed
                 speed_y = 0
                     
