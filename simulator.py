@@ -9,7 +9,7 @@ plt.close()
 # Aircraft properties
 es_19 = flygplansklasser.Aircraft(8616, 37.7, 94, 92, 79, 78, 4, 0, -3, 0.7, 1100)
 es_30 = flygplansklasser.Aircraft(21000, 60, 97, 94, 80, 78, 4, 0, -3, 0.7, 1100)
-lek_30 = flygplansklasser.Aircraft(25000, 70, 97, 94, 90, 57, 4, 0, -3, 0.8, 1100)
+lek_30 = flygplansklasser.Aircraft(25400, 65, 97, 94, 90, 57, 4, 0, -3, 0.8, 1100)
 
 # Other values
 g = 9.82
@@ -141,12 +141,12 @@ def calculate_takeoff_acceleration(aircraft, F_max_, angle_of_attack_takeoff_, c
 #print(calculate_drag_force(es_30, calculate_angle_of_attack(es_30, 4, 1500, 94), 1500, 94))
 
 def calculate_energy_density(aircraft,energy):
-    battery_weight = aircraft.weight - 16000
+    battery_weight = aircraft.weight - 13400
     return energy/battery_weight
 
 def prel_main(aircraft, max_thrust):
     stage = 0 # definierar vilken del av flygfasen vi är i, stage = 0 = takeoff, stage = 1 = climb, stage = 2 = cruise, stage = 3 = descent
-    
+    Cruise_alt = 3500
     #Värden som beskriver flygplanets position och rörelse 
     t = 0
     time_step = 1
@@ -277,7 +277,7 @@ def prel_main(aircraft, max_thrust):
             
             angle_of_attack = calculate_angle_of_attack(aircraft, climb_angle, altitude, speed, flaps)
             
-            if altitude >= 3000: #Om vi är över vår cruising altitude går vi över till cruise
+            if altitude >= Cruise_alt: #Om vi är över vår cruising altitude går vi över till cruise
                 stage = 2
         
         elif stage == 2:     # Cruise
@@ -292,7 +292,7 @@ def prel_main(aircraft, max_thrust):
             
             angle_of_attack = calculate_angle_of_attack(aircraft, climb_angle, altitude, speed, flaps)
             
-            if total_distance + descent_distance_calc(aircraft, altitude) < position: #om vi har nått till det området när vi behöver stiga ner så går vi över till descent
+            if total_distance + descent_distance_calc(aircraft,Cruise_alt ) < position: #om vi har nått till det området när vi behöver stiga ner så går vi över till descent
                 stage = 3
                 print(calculate_lift_coefficient(angle_of_attack, flaps), calculate_drag_coefficient(angle_of_attack, flaps), calculate_lift_coefficient(angle_of_attack, flaps)/calculate_drag_coefficient(angle_of_attack, flaps), angle_of_attack)
         
@@ -301,8 +301,8 @@ def prel_main(aircraft, max_thrust):
                 descent_stall = True
                     
             if descent_stall == True:
-                climb_angle = aircraft.cruise_angle
-                speed = aircraft.cruise_speed
+                climb_angle = aircraft.climb_angle
+                speed = aircraft.climb_speed
                 speed_x = speed
                 speed_y = 0
                     
@@ -374,9 +374,12 @@ def prel_main(aircraft, max_thrust):
     plt.title("Flaps over time")
     plt.show()
     """
+    """
     plt.figure(figsize=(8, 5))
     plt.plot(t_list, energy_consumption_list)
     plt.title("Energy consumption over time")
+    plt.xlabel("Time [s]")
+    plt.ylabel("Energy consumption at time t [J]")
     plt.show()
     
     plt.figure(figsize=(8, 5))
