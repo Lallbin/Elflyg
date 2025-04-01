@@ -9,7 +9,7 @@ plt.close()
 # Aircraft properties
 es_19 = flygplansklasser.Aircraft(8616, 37.7, 94, 92, 79, 78, 4, 0, -3, 0.7, 1100)
 es_30 = flygplansklasser.Aircraft(21000, 60, 97, 94, 80, 78, 4, 0, -3, 0.7, 1100)
-lek_30 = flygplansklasser.Aircraft(25400, 65, 97, 94, 90, 57, 4, 0, -3, 0.8, 1100)
+lek_30 = flygplansklasser.Aircraft(25400, 65, 97, 94, 90, 57, 4, 0, -3, 0.7, 1100)
 
 # Other values
 g = 9.82
@@ -440,3 +440,12 @@ def calculate_max_thrust(aircraft):
 
 prel_main(lek_30, 82000) # 52000
 #prel_main(lek_30, 142800)
+""""
+print("Thrust climb:")
+print(calculate_thrust(lek_30, lek_30.climb_angle, 100, lek_30.climb_speed, 0)) 79%
+print(calculate_thrust(lek_30, lek_30.climb_angle, 3000, lek_30.climb_speed, 0)) 79%
+print("Thrust Cruise:")
+print(calculate_thrust(lek_30, lek_30.cruise_angle, 3000, lek_30.cruise_speed, 0)) 86%
+print("Thrust descent:")
+print(calculate_thrust(lek_30, lek_30.descent_angle, 3000, lek_30.descent_speed, 0)) 79%
+"""
