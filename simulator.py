@@ -374,12 +374,9 @@ def prel_main(aircraft, max_thrust):
     plt.title("Flaps over time")
     plt.show()
     """
-    """
     plt.figure(figsize=(8, 5))
     plt.plot(t_list, energy_consumption_list)
     plt.title("Energy consumption over time")
-    plt.xlabel("Time [s]")
-    plt.ylabel("Energy consumption at time t [J]")
     plt.show()
     
     plt.figure(figsize=(8, 5))
