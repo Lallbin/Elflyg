@@ -322,7 +322,7 @@ def prel_main(aircraft, max_thrust):
             
                 angle_of_attack = calculate_angle_of_attack(aircraft, climb_angle, altitude, speed, flaps)       
 
-        power_consumption = energy_for_flight_phase(aircraft, altitude, climb_angle, speed ,stage, max_thrust, flaps, time_step) / (aircraft.propeller_efficiency * time_step)
+        power_consumption = 30000 + energy_for_flight_phase(aircraft, altitude, climb_angle, speed ,stage, max_thrust, flaps, time_step) / (aircraft.propeller_efficiency * time_step)
         energy_consumption += power_consumption * time_step / 3600000
         
         
