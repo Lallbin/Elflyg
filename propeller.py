@@ -67,7 +67,7 @@ prop1=Propeller([[prop_1_eff_x_15,prop_1_eff_y_15],[prop_1_eff_x_20,prop_1_eff_y
         [[prop_1_power_x_15,prop_1_power_y_15],[prop_1_power_x_20,prop_1_power_y_20],[prop_1_power_x_25,prop_1_power_y_25],[prop_1_power_x_30,prop_1_power_y_30],
          [prop_1_power_x_35,prop_1_power_y_35],[prop_1_power_x_40,prop_1_power_y_40],[prop_1_power_x_45,prop_1_power_y_45]],
         [15,20,25,30,35,40,45], 
-        1.0,
+        0.5,
         13  #Anges i fot
            )
 
@@ -259,8 +259,8 @@ def calc_motor_operating_point(propeller, F_required, aircraft_speed, rho, motor
 #print(calc_motor_operating_point(6000,78,1.2,0.95)) 
 
 
-aircraft_speed=50  #anges här i m/s. OMvandlas till feet/s i funktionen som kallas nedan. 
-F_required=5000   #Anges här i Newton. Omvandlas till lb i funktionen nedan 
+aircraft_speed=40  #anges här i m/s. OMvandlas till feet/s i funktionen som kallas nedan. 
+F_required=35000   #Anges här i Newton. Omvandlas till lb i funktionen nedan 
 
 
 rho=1.2 # Anges i kg/m^3 och omvandlas i funktionen nedan till slug/ft^3
@@ -270,14 +270,14 @@ prop_tip_speed_cut_off=0.9 # Anger max tillåten propellerhastighet, definierad 
 
 
 
-print(calc_motor_operating_point(prop1, F_required, aircraft_speed, rho, motor_efficiency,prop_tip_speed_cut_off))
+#print(calc_motor_operating_point(prop1, F_required, aircraft_speed, rho, motor_efficiency,prop_tip_speed_cut_off))
 
 # 97 m/s 
 # 12 kN
 
 
     
-def plot(propeller):    
+def plot1(propeller):    
   for data in propeller.efficiency_data: 
       x=np.array(data[0])
       y=np.array(data[1])
@@ -287,25 +287,130 @@ def plot(propeller):
   
 
 
-def ext_func(motor_power, rho, aircraft_speed):
-    
+
+def prop_thrust_from_motor_power(motor_power, rho, aircraft_speed):
+    propeller=prop1
     motor_efficiency=0.95
     prop_tip_speed_cut_off=0.9
+    advance_ratio=0
+    prop_rps=15
+    start_advance_ratio=propeller.start_advance_ratio
+    prop_tip_speed= ((prop_rps*np.pi*propeller.diameter)**2 + aircraft_speed**2)**0.5
+    motor_efficiency=0.95
     
-    
-    def func_to_solve(F_required): #Går inte att lösa eftersom ej kontinuerlig
-        return motor_power - calc_motor_operating_point(prop1, F_required, aircraft_speed, rho, motor_efficiency,prop_tip_speed_cut_off)[0] 
-    
-    x0=motor_power/aircraft_speed
+  
+  
+    saved_thrust=0
 
-    solution = fsolve(func_to_solve, x0)
+    def get_motor_power_diff(current_advance_ratio):
     
-    return solution
+    
+        static_forward_flight_threshold=25
+        prop_rps= aircraft_speed*3.28 / (current_advance_ratio*propeller.diameter)
+        thrust_coefficient, power_coefficient =calc_coefficients(propeller,current_advance_ratio,blade_pitch)
+        prop_tip_speed= ((prop_rps*np.pi*propeller.diameter/3.28)**2 + aircraft_speed**2)**0.5
+        
+        
+        
+        if prop_tip_speed>343*prop_tip_speed_cut_off or current_advance_ratio<0:
+            penalty=20000000
+            
+        else:
+            penalty=0
+                
+        
+        ## Alla enheter nedan är metriska, eller konverteras till metrisk enhet med konverteringsfaktor som syns i koden nedan######
+        
+        
+        current_thrust= thrust_coefficient*0.002328*prop_rps**2*propeller.diameter**4*4.45   
+        
+        static_motor_power= current_thrust* (power_coefficient/thrust_coefficient)*prop_rps*propeller.diameter/3.28
+            
+        forward_flight_power= aircraft_speed*current_thrust/( motor_efficiency*calc_prop_efficiency(propeller,aircraft_speed,current_advance_ratio,blade_pitch)[1])
+        
+        linear_weight= (static_forward_flight_threshold-aircraft_speed) / static_forward_flight_threshold 
+        
+        
+        if aircraft_speed> static_forward_flight_threshold:
+            
+            current_motor_power=forward_flight_power
+        else:
+            current_motor_power=forward_flight_power*(1- linear_weight) + static_motor_power* linear_weight
+        
+        
+        
+        
+        
+        return  current_motor_power - motor_power +penalty
+    
+    def get_thrust_from_motor_power():
+        
+        static_forward_flight_threshold=25
+        
+        prop_rps= aircraft_speed*3.28 / (advance_ratio*propeller.diameter)
+        
+        thrust_coefficient, power_coefficient =calc_coefficients(propeller,advance_ratio,blade_pitch)
+        prop_efficiency=calc_prop_efficiency(propeller,aircraft_speed,advance_ratio,blade_pitch)[1]
+        
+        static_thrust= motor_efficiency*(thrust_coefficient/power_coefficient)*motor_power/ ( prop_rps*propeller.diameter)*4.45
+        
+        forward_flight_thrust= prop_efficiency*motor_power*motor_efficiency/aircraft_speed
+        
+        
+        linear_weight= (static_forward_flight_threshold-aircraft_speed) / static_forward_flight_threshold 
+        
+        
+        if aircraft_speed> static_forward_flight_threshold:
+            
+            current_motor_power=forward_flight_thrust
+        else:
+            current_motor_power=forward_flight_thrust*(1- linear_weight) + static_thrust* linear_weight
+        
+        return thrust_coefficient*propeller.diameter**4*prop_rps**2*0.002328*4.45 ,prop_rps,prop_efficiency
+        
+        
+         
+    
+    for blade_pitch in propeller.pitch_angles:
+        
+        advance_ratio = fsolve(get_motor_power_diff,start_advance_ratio)[0]
+        
+        current_thrust,prop_rps,prop_efficiency= get_thrust_from_motor_power()
+        
+        
+        #current_thrust= prop_efficiency*motor_efficiency*motor_power/aircraft_speed
+        
+        print("blade angle:", blade_pitch, "advance ratio: ", advance_ratio,"prop rps:",prop_rps, "prop eff:",prop_efficiency)
+        
+        if current_thrust>saved_thrust:
+            saved_thrust=current_thrust
+            
+        print(current_thrust)
+        
+        
+        
+            
 
-#print(ext_func(2287846,1.2,50))
-    
- 
- 
+            
+    return min(saved_thrust,35000)
+        
+
+#print(prop_thrust_from_motor_power_fsolve(2287846,1.2,45))
+def plot2():
+    x=0
+    datalistx=[]
+    datalisty=[]
+    while x<100:
+        datalisty.append(prop_thrust_from_motor_power(2300000,1.2,x))
+        datalistx.append(x)
+        x+=1
+        
+        
+    x=np.array(datalistx)
+    y=np.array(datalisty)
+    plt.plot(x,y)
+        
+    plt.show()
 
 
 
