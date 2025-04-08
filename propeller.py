@@ -310,7 +310,7 @@ def prop_thrust_from_motor_power(motor_power, rho, aircraft_speed):
         thrust_coefficient, power_coefficient =calc_coefficients(propeller,current_advance_ratio,blade_pitch)
         prop_tip_speed= ((prop_rps*np.pi*propeller.diameter/3.28)**2 + aircraft_speed**2)**0.5
         
-        
+        thrust_coefficient=max(0.0001,thrust_coefficient)
         
         if prop_tip_speed>343*prop_tip_speed_cut_off or current_advance_ratio<0:
             penalty=20000000
@@ -392,10 +392,10 @@ def prop_thrust_from_motor_power(motor_power, rho, aircraft_speed):
             
 
             
-    return min(saved_thrust,35000)
+    return min(saved_thrust,350000)
         
 
-#print(prop_thrust_from_motor_power(2300000,1.2,100))
+print(prop_thrust_from_motor_power(2300000,1.2,50))
 
 def plot2():
     x=0
@@ -413,7 +413,7 @@ def plot2():
         
     plt.show()
     
-plot2()
+
 
 
 
