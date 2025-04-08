@@ -260,7 +260,7 @@ def calc_motor_operating_point(propeller, F_required, aircraft_speed, rho, motor
 
 
 aircraft_speed=90  #anges här i m/s. OMvandlas till feet/s i funktionen som kallas nedan. 
-F_required=14000   #Anges här i Newton. Omvandlas till lb i funktionen nedan 
+F_required=1400   #Anges här i Newton. Omvandlas till lb i funktionen nedan 
 
 
 rho=1.2 # Anges i kg/m^3 och omvandlas i funktionen nedan till slug/ft^3
@@ -270,7 +270,7 @@ prop_tip_speed_cut_off=0.9 # Anger max tillåten propellerhastighet, definierad 
 
 
 
-print(calc_motor_operating_point(prop1, F_required, aircraft_speed, rho, motor_efficiency,prop_tip_speed_cut_off))
+#print(calc_motor_operating_point(prop1, F_required, aircraft_speed, rho, motor_efficiency,prop_tip_speed_cut_off))
 
 # 97 m/s 
 # 12 kN
@@ -384,6 +384,7 @@ def prop_thrust_from_motor_power(motor_power, rho, aircraft_speed):
         
         if current_thrust>saved_thrust:
             saved_thrust=current_thrust
+            saved_prop_efficiency=prop_efficiency
             
         #print(current_thrust)
         
@@ -392,17 +393,17 @@ def prop_thrust_from_motor_power(motor_power, rho, aircraft_speed):
             
 
             
-    return saved_thrust,prop_efficiency
+    return saved_thrust,saved_prop_efficiency
         
 
-#print(prop_thrust_from_motor_power(2300000,1.2,50))
+print(prop_thrust_from_motor_power(2300000,1.2,80))
 
 def plot2():
     x=0
     datalistx=[]
     datalisty=[]
     while x<100:
-        datalisty.append(prop_thrust_from_motor_power(2300000,1.2,x))
+        datalisty.append(prop_thrust_from_motor_power(2300000,1.2,x)[1])
         datalistx.append(x)
         x+=1
         
