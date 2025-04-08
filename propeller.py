@@ -392,10 +392,10 @@ def prop_thrust_from_motor_power(motor_power, rho, aircraft_speed):
             
 
             
-    return min(saved_thrust,350000)
+    return saved_thrust
         
 
-print(prop_thrust_from_motor_power(2300000,1.2,50))
+print(prop_thrust_from_motor_power(8000000,1.2,50))
 
 def plot2():
     x=0
