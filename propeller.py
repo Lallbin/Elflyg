@@ -326,7 +326,7 @@ def prop_thrust_from_motor_power(motor_power, rho, aircraft_speed):
         
         static_motor_power= current_thrust* (power_coefficient/thrust_coefficient)*prop_rps*propeller.diameter/3.28
             
-        forward_flight_power= aircraft_speed*current_thrust/( motor_efficiency*calc_prop_efficiency(propeller,aircraft_speed,current_advance_ratio,blade_pitch)[1])
+        forward_flight_power= aircraft_speed*current_thrust/( motor_efficiency*max(0.001,calc_prop_efficiency(propeller,aircraft_speed,current_advance_ratio,blade_pitch)[1]))
         
         linear_weight= (static_forward_flight_threshold-aircraft_speed) / static_forward_flight_threshold 
         
@@ -395,7 +395,7 @@ def prop_thrust_from_motor_power(motor_power, rho, aircraft_speed):
     return min(saved_thrust,35000)
         
 
-print(prop_thrust_from_motor_power(2300000,1.2,100))
+#print(prop_thrust_from_motor_power(2300000,1.2,100))
 
 def plot2():
     x=0
@@ -412,6 +412,8 @@ def plot2():
     plt.plot(x,y)
         
     plt.show()
+    
+plot2()
 
 
 
