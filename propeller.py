@@ -194,7 +194,7 @@ def calc_motor_operating_point(propeller, F_required, aircraft_speed, rho, motor
     
 
     lowest_motor_electric_power=1000000000
-    highest_efficiency=0
+    highest_efficiency=-1
     saved_prop_efficiency=None
     saved_prop_rps=0
     
@@ -259,8 +259,8 @@ def calc_motor_operating_point(propeller, F_required, aircraft_speed, rho, motor
 #print(calc_motor_operating_point(6000,78,1.2,0.95)) 
 
 
-aircraft_speed=40  #anges här i m/s. OMvandlas till feet/s i funktionen som kallas nedan. 
-F_required=35000   #Anges här i Newton. Omvandlas till lb i funktionen nedan 
+aircraft_speed=90  #anges här i m/s. OMvandlas till feet/s i funktionen som kallas nedan. 
+F_required=14000   #Anges här i Newton. Omvandlas till lb i funktionen nedan 
 
 
 rho=1.2 # Anges i kg/m^3 och omvandlas i funktionen nedan till slug/ft^3
@@ -270,7 +270,7 @@ prop_tip_speed_cut_off=0.9 # Anger max tillåten propellerhastighet, definierad 
 
 
 
-#print(calc_motor_operating_point(prop1, F_required, aircraft_speed, rho, motor_efficiency,prop_tip_speed_cut_off))
+print(calc_motor_operating_point(prop1, F_required, aircraft_speed, rho, motor_efficiency,prop_tip_speed_cut_off))
 
 # 97 m/s 
 # 12 kN
@@ -392,10 +392,10 @@ def prop_thrust_from_motor_power(motor_power, rho, aircraft_speed):
             
 
             
-    return saved_thrust
+    return saved_thrust,prop_efficiency
         
 
-print(prop_thrust_from_motor_power(8000000,1.2,50))
+#print(prop_thrust_from_motor_power(2300000,1.2,50))
 
 def plot2():
     x=0
