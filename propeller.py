@@ -298,8 +298,8 @@ def prop_thrust_from_motor_power(motor_power, rho, aircraft_speed):
     prop_tip_speed= ((prop_rps*np.pi*propeller.diameter)**2 + aircraft_speed**2)**0.5
     motor_efficiency=0.95
     
-  
-  
+    aircraft_speed=min(5,aircraft_speed)
+    
     saved_thrust=0
 
     def get_motor_power_diff(current_advance_ratio):
@@ -395,7 +395,8 @@ def prop_thrust_from_motor_power(motor_power, rho, aircraft_speed):
     return min(saved_thrust,35000)
         
 
-#print(prop_thrust_from_motor_power_fsolve(2287846,1.2,45))
+print(prop_thrust_from_motor_power(2287846,1.2,5))
+
 def plot2():
     x=0
     datalistx=[]
