@@ -380,12 +380,12 @@ def prop_thrust_from_motor_power(motor_power, rho, aircraft_speed):
         
         #current_thrust= prop_efficiency*motor_efficiency*motor_power/aircraft_speed
         
-        print("blade angle:", blade_pitch, "advance ratio: ", advance_ratio,"prop rps:",prop_rps, "prop eff:",prop_efficiency)
+        #print("blade angle:", blade_pitch, "advance ratio: ", advance_ratio,"prop rps:",prop_rps, "prop eff:",prop_efficiency)
         
         if current_thrust>saved_thrust:
             saved_thrust=current_thrust
             
-        print(current_thrust)
+        #print(current_thrust)
         
         
         
@@ -395,7 +395,7 @@ def prop_thrust_from_motor_power(motor_power, rho, aircraft_speed):
     return min(saved_thrust,35000)
         
 
-print(prop_thrust_from_motor_power(2500000,1.2,90))
+print(prop_thrust_from_motor_power(2300000,1.2,100))
 
 def plot2():
     x=0
