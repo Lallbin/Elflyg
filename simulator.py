@@ -9,7 +9,7 @@ plt.close()
 # Aircraft properties
 es_19 = flygplansklasser.Aircraft(8616, 37.7, 94, 92, 79, 78, 4, 0, -3, 2000000, 1100)
 es_30 = flygplansklasser.Aircraft(21000, 60, 97, 94, 80, 78, 4, 0, -3, 2000000, 1100)
-lek_30 = flygplansklasser.Aircraft(25400, 77, 97, 94, 90, 68, 4, 0, -3, 2300000, 1375)
+lek_30 = flygplansklasser.Aircraft(21400, 77, 97, 94, 90, 68, 4, 0, -3, 2300000, 1375)
 
 # Other values
 g = 9.82
@@ -49,7 +49,7 @@ def calculate_lift_coefficient(angle_of_attack_, flaps_):
 
 def calculate_drag_coefficient(angle_of_attack_, flaps_):
     #C_d = 0.025 + 0.039 * (calculate_lift_coefficient(angle_of_attack_, flaps_))**2 
-    C_d = 0.023 + 0.03 * (calculate_lift_coefficient(angle_of_attack_, flaps_))**2 
+    C_d = 0.025 + 0.039 * (calculate_lift_coefficient(angle_of_attack_, flaps_))**2 
     
     # UPPDATERA SÅ ATT L/D blir 19,8 vid cruise!!!
     
@@ -338,9 +338,9 @@ def prel_main(aircraft, time_step=1.0, max_power=lek_30.max_motor_power, takeoff
         
         elif stage == 3:     # Descent                
             if descent_stall == True:
-                climb_angle = aircraft.climb_angle
+                climb_angle = aircraft.cruise_angle
             
-                speed = aircraft.climb_speed
+                speed = aircraft.cruise_speed
                 speed_x = speed
                 speed_y = 0
                 
