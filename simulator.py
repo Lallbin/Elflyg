@@ -49,7 +49,7 @@ def calculate_lift_coefficient(angle_of_attack_, flaps_):
 
 def calculate_drag_coefficient(angle_of_attack_, flaps_):
     #C_d = 0.025 + 0.039 * (calculate_lift_coefficient(angle_of_attack_, flaps_))**2 
-    C_d = 0.024 + 0.036 * (calculate_lift_coefficient(angle_of_attack_, flaps_))**2 
+    C_d = 0.022 + 0.039 * (calculate_lift_coefficient(angle_of_attack_, flaps_))**2 
     
     # UPPDATERA SÅ ATT L/D blir 19,8 vid cruise!!!
     
