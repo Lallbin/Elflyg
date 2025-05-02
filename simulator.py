@@ -336,14 +336,11 @@ def prel_main(aircraft, time_step=1.0, max_power=lek_30.max_motor_power, takeoff
                 first = True
                 print(calculate_lift_coefficient(angle_of_attack, flaps), calculate_drag_coefficient(angle_of_attack, flaps), calculate_lift_coefficient(angle_of_attack, flaps)/calculate_drag_coefficient(angle_of_attack, flaps), angle_of_attack)
         
-        elif stage == 3:     # Descent
-            if altitude < 1500 and time_stall <= 45*60:
-                descent_stall = True
-                    
+        elif stage == 3:     # Descent                
             if descent_stall == True:
-                climb_angle = aircraft.cruise_angle
+                climb_angle = aircraft.climb_angle
             
-                speed = aircraft.cruise_speed
+                speed = aircraft.climb_speed
                 speed_x = speed
                 speed_y = 0
                 
@@ -383,7 +380,11 @@ def prel_main(aircraft, time_step=1.0, max_power=lek_30.max_motor_power, takeoff
                 if first:
                     aircraft_efficiency = propeller.calc_motor_operating_point(propeller.prop1, thrust/2, speed, calculate_air_density(altitude), 0.95, 0.9)[3]
                     print("Descent:", aircraft_efficiency)
-                    first = False      
+                    first = False
+                
+                if altitude < 1500 and time_stall <= 45*60:
+                    descent_stall = True
+                    first = True
 
         power_consumption = 30000 + energy_for_flight_phase(aircraft, altitude, climb_angle, speed ,stage, thrust, flaps, time_step) / (aircraft_efficiency * time_step)
         energy_consumption += power_consumption * time_step / 3600000
