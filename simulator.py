@@ -9,7 +9,7 @@ plt.close()
 # Aircraft properties
 es_19 = flygplansklasser.Aircraft(8616, 37.7, 94, 92, 79, 78, 4, 0, -3, 2000000, 1100)
 es_30 = flygplansklasser.Aircraft(21000, 60, 97, 94, 80, 78, 4, 0, -3, 2000000, 1100)
-lek_30 = flygplansklasser.Aircraft(25400, 65, 97, 94, 90, 68, 4, 0, -3, 2300000, 1375)
+lek_30 = flygplansklasser.Aircraft(25400, 77, 97, 94, 90, 68, 4, 0, -3, 2300000, 1375)
 
 # Other values
 g = 9.82
@@ -42,12 +42,16 @@ def calculate_air_density(h):
     return rho
 
 def calculate_lift_coefficient(angle_of_attack_, flaps_):
-    C_l = 0.27 + 0.1 * angle_of_attack_ + flaps_ * 0.025
+    #C_l = 0.27 + 0.1 * angle_of_attack_ + flaps_ * 0.025
+    C_l = 0.20 + 0.105 * angle_of_attack_ + flaps_ * 0.025
     
     return C_l
 
 def calculate_drag_coefficient(angle_of_attack_, flaps_):
-    C_d = 0.025 + 0.035 * (calculate_lift_coefficient(angle_of_attack_, flaps_))**2
+    #C_d = 0.025 + 0.039 * (calculate_lift_coefficient(angle_of_attack_, flaps_))**2 
+    C_d = 0.023 + 0.03 * (calculate_lift_coefficient(angle_of_attack_, flaps_))**2 
+    
+    # UPPDATERA SÅ ATT L/D blir 19,8 vid cruise!!!
     
     return C_d
 
@@ -142,13 +146,12 @@ def calculate_energy_density(aircraft,energy):
     return energy/battery_weight
 
 
-def prel_main(aircraft, max_power=lek_30.max_motor_power, takeoff_calculation=False):
+def prel_main(aircraft, time_step=1.0, max_power=lek_30.max_motor_power, takeoff_calculation=False):
     stage = 0 # definierar vilken del av flygfasen vi är i, stage = 0 = takeoff, stage = 1 = climb, stage = 2 = cruise, stage = 3 = descent
     cruise_alt = 3500
-    runway = 1375
+    runway = 1385
     #Värden som beskriver flygplanets position och rörelse 
     t = 0
-    time_step = 1
     
     position = 0
     altitude = 0
@@ -322,6 +325,10 @@ def prel_main(aircraft, max_power=lek_30.max_motor_power, takeoff_calculation=Fa
             if first:
                 aircraft_efficiency = propeller.calc_motor_operating_point(propeller.prop1, thrust/2, speed, calculate_air_density(altitude), 0.95, 0.9)[3]
                 print("Cruise:", aircraft_efficiency)
+                print(climb_angle)
+                print(speed)
+                print(thrust)
+                print(aircraft_efficiency)
                 first = False
             
             if total_distance + descent_distance_calc(aircraft,cruise_alt ) < position: #om vi har nått till det området när vi behöver stiga ner så går vi över till descent
@@ -330,26 +337,32 @@ def prel_main(aircraft, max_power=lek_30.max_motor_power, takeoff_calculation=Fa
                 print(calculate_lift_coefficient(angle_of_attack, flaps), calculate_drag_coefficient(angle_of_attack, flaps), calculate_lift_coefficient(angle_of_attack, flaps)/calculate_drag_coefficient(angle_of_attack, flaps), angle_of_attack)
         
         elif stage == 3:     # Descent
-            if altitude < 1500 and time_stall <= 30*60:
+            if altitude < 1500 and time_stall <= 45*60:
                 descent_stall = True
                     
             if descent_stall == True:
-                climb_angle = aircraft.climb_angle
-                speed = aircraft.climb_speed
+                climb_angle = aircraft.cruise_angle
+            
+                speed = aircraft.cruise_speed
                 speed_x = speed
                 speed_y = 0
-                    
+                
                 angle_of_attack = calculate_angle_of_attack(aircraft, climb_angle, altitude, speed, flaps)
-                time_stall += time_step
                 
                 thrust = calculate_thrust(aircraft, climb_angle, altitude, speed, flaps)
+                
+                time_stall += time_step
                 
                 if first:
                     aircraft_efficiency = propeller.calc_motor_operating_point(propeller.prop1, thrust/2, speed, calculate_air_density(altitude), 0.95, 0.9)[3]
                     print("Descent stall:", aircraft_efficiency)
+                    print(climb_angle)
+                    print(speed)
+                    print(thrust)
+                    print(aircraft_efficiency)
                     first = False
                 
-                if time_stall >= 30*60:
+                if time_stall >= 45*60:
                     descent_stall = False
                     first = True
                     
@@ -405,20 +418,6 @@ def prel_main(aircraft, max_power=lek_30.max_motor_power, takeoff_calculation=Fa
             flying = False
         
         if position >= runway and takeoff_calculation:
-            plt.figure(figsize=(8, 5))
-            plt.plot(position_list, altitude_list)
-            plt.title("Altitude over distance")
-            plt.show()
-            
-            plt.figure(figsize=(8, 5))
-            plt.plot(position_list, speed_list)
-            plt.title("Speed over distance")
-            plt.show()
-            
-            plt.figure(figsize=(8, 5))
-            plt.plot(t_list, acceleration_list)
-            plt.title("Speed over distance")
-            plt.show()
             
             return altitude
     
@@ -458,12 +457,12 @@ def prel_main(aircraft, max_power=lek_30.max_motor_power, takeoff_calculation=Fa
     plt.plot(t_list, thrust_list)
     plt.title("Thrust over time")
     plt.show()
-
+    """
     plt.figure(figsize=(8, 5))
     plt.plot(t_list, angle_of_attack_list)
     plt.title("AOA over time")
     plt.show()
-
+    """
     plt.figure(figsize=(8, 5))
     plt.plot(t_list, speed_x_list)
     plt.title("Ground speed over time")
@@ -473,12 +472,12 @@ def prel_main(aircraft, max_power=lek_30.max_motor_power, takeoff_calculation=Fa
     plt.plot(t_list, speed_list)
     plt.title("Speed over time")
     plt.show()
-
+    """
     plt.figure(figsize=(8, 5))
     plt.plot(t_list, acceleration_list)
     plt.title("Acceleration over time")
     plt.show()
-
+    """
     plt.figure(figsize=(8, 5))
     plt.plot(position_list, climb_angle_list)
     plt.title("Climb angle over distance")
@@ -497,13 +496,25 @@ def calculate_max_power(aircraft):
 
 #print("Max power:", calculate_max_power(lek_30))
 
-#print(prel_main(lek_30, 2300000, 1375, True))
+#print(prel_main(lek_30, 0.01, 2300000, True))
 
-#prel_main(lek_30)
+prel_main(lek_30)
 
+C_L = []
+C_D = []
+L_D = []
 
-for i in range(8):
-    print(calculate_lift_coefficient(i, 0) / calculate_drag_coefficient(i, 0))
+for i in range(11):
+    print(f"L/D with AOA {i}:", calculate_lift_coefficient(i, 0) / calculate_drag_coefficient(i, 0))
+    C_L.append(calculate_lift_coefficient(i, 0))
+    C_D.append(calculate_drag_coefficient(i, 0))
+    L_D.append(calculate_lift_coefficient(i, 0) / calculate_drag_coefficient(i, 0))
+
+plt.figure(figsize=(8, 5))
+plt.plot(range(11), L_D)
+plt.title("")
+plt.show()
+    
 """
 print("Thrust climb:")
 print(calculate_thrust(lek_30, lek_30.climb_angle, 100, lek_30.climb_speed, 0)) 79%
