@@ -9,7 +9,7 @@ plt.close()
 # Aircraft properties
 es_19 = flygplansklasser.Aircraft(8616, 37.7, 94, 92, 79, 78, 4, 0, -3, 2000000, 1100)
 es_30 = flygplansklasser.Aircraft(21000, 60, 97, 94, 80, 78, 4, 0, -3, 2000000, 1100)
-lek_30 = flygplansklasser.Aircraft(21400, 77, 97, 94, 90, 68, 4, 0, -3, 2300000, 1375)
+lek_30 = flygplansklasser.Aircraft(25400, 77, 97, 94, 90, 68, 4, 0, -3, 2300000, 1375)
 
 # Other values
 g = 9.82
@@ -426,13 +426,15 @@ def prel_main(aircraft, time_step=1.0, max_power=lek_30.max_motor_power, takeoff
     print(t/3600) #tiden i timmar
     print(("Energy density", calculate_energy_density(aircraft,sum(energy_consumption_list)/(3600000 * time_step))))
     
+    return calculate_energy_density(aircraft,sum(energy_consumption_list)/(3600000 * time_step))
+    
     #Plotta flygturen med alla flygfaser
     """
     plt.figure(figsize=(8, 5))
     plt.plot(t_list, flaps_list)
     plt.title("Flaps over time")
     plt.show()
-    """
+    
     plt.figure(figsize=(8, 5))
     plt.plot(t_list, energy_consumption_list)
     plt.title("Energy consumption over time")
@@ -448,7 +450,6 @@ def prel_main(aircraft, time_step=1.0, max_power=lek_30.max_motor_power, takeoff
     plt.title("Altitude over distance")
     plt.show()
     
-    """
     plt.figure(figsize=(8, 5))
     plt.plot(t_list, altitude_list)
     plt.title("Altitude over time")
@@ -458,12 +459,12 @@ def prel_main(aircraft, time_step=1.0, max_power=lek_30.max_motor_power, takeoff
     plt.plot(t_list, thrust_list)
     plt.title("Thrust over time")
     plt.show()
-    """
+    
     plt.figure(figsize=(8, 5))
     plt.plot(t_list, angle_of_attack_list)
     plt.title("AOA over time")
     plt.show()
-    """
+    
     plt.figure(figsize=(8, 5))
     plt.plot(t_list, speed_x_list)
     plt.title("Ground speed over time")
@@ -473,12 +474,12 @@ def prel_main(aircraft, time_step=1.0, max_power=lek_30.max_motor_power, takeoff
     plt.plot(t_list, speed_list)
     plt.title("Speed over time")
     plt.show()
-    """
+
     plt.figure(figsize=(8, 5))
     plt.plot(t_list, acceleration_list)
     plt.title("Acceleration over time")
     plt.show()
-    """
+
     plt.figure(figsize=(8, 5))
     plt.plot(position_list, climb_angle_list)
     plt.title("Climb angle over distance")
@@ -499,7 +500,16 @@ def calculate_max_power(aircraft):
 
 #print(prel_main(lek_30, 0.01, 2300000, True))
 
-prel_main(lek_30)
+battery_density = []
+
+for i in range(11):
+    lek_30.weight = 20400 + 1000 * i
+    battery_density.append(prel_main(lek_30))
+
+plt.figure(figsize=(8, 5))
+plt.plot(range(11), battery_density)
+plt.title("")
+plt.show()
 
 C_L = []
 C_D = []
