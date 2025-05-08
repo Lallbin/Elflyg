@@ -9,12 +9,10 @@ plt.close()
 # Aircraft properties
 es_19 = flygplansklasser.Aircraft(8616, 37.7, 94, 92, 79, 78, 4, 0, -3, 2000000, 1100)
 es_30 = flygplansklasser.Aircraft(21000, 60, 97, 94, 80, 78, 4, 0, -3, 2000000, 1100)
-lek_30 = flygplansklasser.Aircraft(25400, 77, 97, 94, 90, 68, 4, 0, -3, 2300000, 1375)
+lek_30 = flygplansklasser.Aircraft(30400, 77, 97, 94, 90, 68, 4, 0, -3, 2300000, 1375)
 
 # Other values
 g = 9.82
-
-total_distance = 400 * 1000
 
 
 # Gör så at cos/sin/tan funkar som vi vill att de ska göra
@@ -146,10 +144,9 @@ def calculate_energy_density(aircraft,energy):
     return energy/battery_weight
 
 
-def prel_main(aircraft, time_step=1.0, max_power=lek_30.max_motor_power, takeoff_calculation=False):
+def prel_main(aircraft, time_step=1.0, max_power=lek_30.max_motor_power, total_distance=400*1000, takeoff_calculation=False):
     stage = 0 # definierar vilken del av flygfasen vi är i, stage = 0 = takeoff, stage = 1 = climb, stage = 2 = cruise, stage = 3 = descent
     cruise_alt = 3500
-    runway = 1385
     #Värden som beskriver flygplanets position och rörelse 
     t = 0
     
@@ -418,15 +415,16 @@ def prel_main(aircraft, time_step=1.0, max_power=lek_30.max_motor_power, takeoff
         if stage > 1 and altitude <= 1:
             flying = False
         
-        if position >= runway and takeoff_calculation:
+        if altitude >= 15 and takeoff_calculation:
             
-            return altitude
+            return position
     
     print(energy_consumption_list[-1]) #Printa totala energikonsumptionen och gör om till kWh
     print(t/3600) #tiden i timmar
-    print(("Energy density", calculate_energy_density(aircraft,sum(energy_consumption_list)/(3600000 * time_step))))
+    print(("Energy density", calculate_energy_density(aircraft, energy_consumption_list[-1])))
+    #print(("Energy density", calculate_energy_density(aircraft,sum(energy_consumption_list)/(3600000 * time_step))))
     
-    return calculate_energy_density(aircraft,sum(energy_consumption_list)/(3600000 * time_step))
+    #return calculate_energy_density(aircraft,sum(energy_consumption_list)/(3600000 * time_step))
     
     #Plotta flygturen med alla flygfaser
     """
@@ -487,28 +485,34 @@ def prel_main(aircraft, time_step=1.0, max_power=lek_30.max_motor_power, takeoff
 
     """
     
-    
 
-def calculate_max_power(aircraft):
-    def func(power):
-        return prel_main(aircraft, power, 1100, True) - 15
-    
-    return fsolve(func, 2000000)[0]
-    
+print(prel_main(lek_30, time_step=1, takeoff_calculation=False))
 
-#print("Max power:", calculate_max_power(lek_30))
-
-#print(prel_main(lek_30, 0.01, 2300000, True))
-
+"""
+battery_weights = []
 battery_density = []
+flight_distances = []
+battery_density_1 = []
+
 
 for i in range(11):
     lek_30.weight = 20400 + 1000 * i
-    battery_density.append(prel_main(lek_30))
+    battery_weights.append(7000 + 1000 * i)
+    battery_density.append(prel_main(lek_30)*10**6)
+    
+    lek_30.weight = 25400
+    flight_distances.append((50 + 50 * i)*1000)
+    battery_density_1.append(prel_main(lek_30, total_distance=(50 + 50 * i)*1000)*10**6)
+    
 
 plt.figure(figsize=(8, 5))
-plt.plot(range(11), battery_density)
-plt.title("")
+plt.plot(battery_weights, battery_density)
+plt.title("battery weights")
+plt.show()
+
+plt.figure(figsize=(8, 5))
+plt.plot(flight_distances, battery_density_1)
+plt.title("flight distances")
 plt.show()
 
 C_L = []
@@ -526,7 +530,7 @@ plt.plot(range(11), L_D)
 plt.title("")
 plt.show()
     
-"""
+
 print("Thrust climb:")
 print(calculate_thrust(lek_30, lek_30.climb_angle, 100, lek_30.climb_speed, 0)) 79%
 print(calculate_thrust(lek_30, lek_30.climb_angle, 3000, lek_30.climb_speed, 0)) 79%
