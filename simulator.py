@@ -9,7 +9,7 @@ plt.close()
 # Aircraft properties
 es_19 = flygplansklasser.Aircraft(8616, 37.7, 94, 92, 79, 78, 4, 0, -3, 2000000, 1100)
 es_30 = flygplansklasser.Aircraft(21000, 60, 97, 94, 80, 78, 4, 0, -3, 2000000, 1100)
-lek_30 = flygplansklasser.Aircraft(31400, 77, 97, 90, 90, 68, 4, 0, -3, 2300000, 1375)
+lek_30 = flygplansklasser.Aircraft(29800, 77, 97, 90, 90, 68, 4, 0, -3, 2300000, 1375)
 
 # Other values
 g = 9.82
@@ -140,7 +140,7 @@ def calculate_takeoff_acceleration(aircraft, F_max_, angle_of_attack_takeoff_, c
 #print(calculate_drag_force(es_30, calculate_angle_of_attack(es_30, 4, 1500, 94), 1500, 94))
 
 def calculate_energy_density(aircraft,energy):
-    battery_weight = aircraft.weight - 13400
+    battery_weight = aircraft.weight - 11800
     return energy/battery_weight
 
 
@@ -171,7 +171,7 @@ def prel_main(aircraft, time_step=1.0, max_power=lek_30.max_motor_power, total_d
     
     flaps = 0 # 0, 10, 20 or 30 (degrees)
     
-    windspeed = 0
+    windspeed = -10
     
     aircraft_efficiency = 1
 
@@ -496,12 +496,12 @@ flight_distances = []
 battery_density_1 = []
 
 
-for i in range(16):
+for i in range(10):
     
-    lek_30.weight = 17400 + 1000 * i
-    battery_weights.append(4000 + 1000 * i)
+    lek_30.weight = 21800 + 1000 * i
+    battery_weights.append(10000 + 1000 * i)
     battery_density.append(prel_main(lek_30)*10**3)
-    """
+ """   
 """
     lek_30.weight = 27400
     flight_distances.append((50 + 50 * i)*1000)
@@ -538,8 +538,8 @@ plt.show()
 """  
 print(prel_main(lek_30, time_step=1, takeoff_calculation=False))
 print("Thrust climb:")
-print(calculate_thrust(lek_30, lek_30.climb_angle, 100, lek_30.climb_speed, 0)) #82%
-print(calculate_thrust(lek_30, lek_30.climb_angle, 3000, lek_30.climb_speed, 0)) #82%
+print(calculate_thrust(lek_30, lek_30.climb_angle, 100, lek_30.climb_speed, 0)) #83%
+print(calculate_thrust(lek_30, lek_30.climb_angle, 3000, lek_30.climb_speed, 0)) #83%
 print("Thrust Cruise:")
 print(calculate_thrust(lek_30, lek_30.cruise_angle, 3000, lek_30.cruise_speed, 0)) #86%
 print("Thrust descent:")
