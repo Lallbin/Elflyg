@@ -9,7 +9,7 @@ plt.close()
 # Aircraft properties
 es_19 = flygplansklasser.Aircraft(8616, 37.7, 94, 92, 79, 78, 4, 0, -3, 2000000, 1100)
 es_30 = flygplansklasser.Aircraft(21000, 60, 97, 94, 80, 78, 4, 0, -3, 2000000, 1100)
-lek_30 = flygplansklasser.Aircraft(30400, 77, 97, 94, 90, 68, 4, 0, -3, 2300000, 1375)
+lek_30 = flygplansklasser.Aircraft(31400, 77, 97, 90, 90, 68, 4, 0, -3, 2300000, 1375)
 
 # Other values
 g = 9.82
@@ -383,7 +383,7 @@ def prel_main(aircraft, time_step=1.0, max_power=lek_30.max_motor_power, total_d
                     descent_stall = True
                     first = True
 
-        power_consumption = 30000 + energy_for_flight_phase(aircraft, altitude, climb_angle, speed ,stage, thrust, flaps, time_step) / (aircraft_efficiency * time_step)
+        power_consumption = 30000 + (energy_for_flight_phase(aircraft, altitude, climb_angle, speed ,stage, thrust, flaps, time_step) / (aircraft_efficiency * time_step))
         energy_consumption += power_consumption * time_step / 3600000
         
         thrust_list.append(thrust)
@@ -419,9 +419,10 @@ def prel_main(aircraft, time_step=1.0, max_power=lek_30.max_motor_power, total_d
             
             return position
     
-    print(energy_consumption_list[-1]) #Printa totala energikonsumptionen och gör om till kWh
+    print((energy_consumption_list[-1]/0.9)) #Printa totala energikonsumptionen och gör om till kWh
     print(t/3600) #tiden i timmar
-    print(("Energy density", calculate_energy_density(aircraft, energy_consumption_list[-1])))
+    print(("Energy density ", calculate_energy_density(aircraft, (energy_consumption_list[-1]/0.9))))
+    return calculate_energy_density(aircraft,(energy_consumption_list[-1]/0.9))
     #print(("Energy density", calculate_energy_density(aircraft,sum(energy_consumption_list)/(3600000 * time_step))))
     
     #return calculate_energy_density(aircraft,sum(energy_consumption_list)/(3600000 * time_step))
@@ -486,7 +487,7 @@ def prel_main(aircraft, time_step=1.0, max_power=lek_30.max_motor_power, total_d
     """
     
 
-print(prel_main(lek_30, time_step=1, takeoff_calculation=False))
+
 
 """
 battery_weights = []
@@ -495,30 +496,35 @@ flight_distances = []
 battery_density_1 = []
 
 
-for i in range(11):
-    lek_30.weight = 20400 + 1000 * i
-    battery_weights.append(7000 + 1000 * i)
-    battery_density.append(prel_main(lek_30)*10**6)
+for i in range(16):
     
-    lek_30.weight = 25400
+    lek_30.weight = 17400 + 1000 * i
+    battery_weights.append(4000 + 1000 * i)
+    battery_density.append(prel_main(lek_30)*10**3)
+    """
+"""
+    lek_30.weight = 27400
     flight_distances.append((50 + 50 * i)*1000)
-    battery_density_1.append(prel_main(lek_30, total_distance=(50 + 50 * i)*1000)*10**6)
-    
-
+    battery_density_1.append(prel_main(lek_30, total_distance=(50 + 50 * i)*1000)*10**3)
+    """
+"""
 plt.figure(figsize=(8, 5))
 plt.plot(battery_weights, battery_density)
-plt.title("battery weights")
+plt.title("Battery weights")
+plt.xlabel("Batterivikt [kg]")
+plt.ylabel("Energitäthet [Wh/kg]")
 plt.show()
-
+"""
+"""
 plt.figure(figsize=(8, 5))
 plt.plot(flight_distances, battery_density_1)
 plt.title("flight distances")
 plt.show()
-
+"""
 C_L = []
 C_D = []
 L_D = []
-
+"""
 for i in range(11):
     print(f"L/D with AOA {i}:", calculate_lift_coefficient(i, 0) / calculate_drag_coefficient(i, 0))
     C_L.append(calculate_lift_coefficient(i, 0))
@@ -529,13 +535,13 @@ plt.figure(figsize=(8, 5))
 plt.plot(range(11), L_D)
 plt.title("")
 plt.show()
-    
-
+"""  
+print(prel_main(lek_30, time_step=1, takeoff_calculation=False))
 print("Thrust climb:")
-print(calculate_thrust(lek_30, lek_30.climb_angle, 100, lek_30.climb_speed, 0)) 79%
-print(calculate_thrust(lek_30, lek_30.climb_angle, 3000, lek_30.climb_speed, 0)) 79%
+print(calculate_thrust(lek_30, lek_30.climb_angle, 100, lek_30.climb_speed, 0)) #82%
+print(calculate_thrust(lek_30, lek_30.climb_angle, 3000, lek_30.climb_speed, 0)) #82%
 print("Thrust Cruise:")
-print(calculate_thrust(lek_30, lek_30.cruise_angle, 3000, lek_30.cruise_speed, 0)) 86%
+print(calculate_thrust(lek_30, lek_30.cruise_angle, 3000, lek_30.cruise_speed, 0)) #86%
 print("Thrust descent:")
-print(calculate_thrust(lek_30, lek_30.descent_angle, 3000, lek_30.descent_speed, 0)) 79%
-"""
+print(calculate_thrust(lek_30, lek_30.descent_angle, 3000, lek_30.descent_speed, 0))# 74%
+
